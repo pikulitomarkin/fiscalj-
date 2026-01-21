@@ -241,7 +241,7 @@ async def exemplo_emissao():
         logradouro="Rua Felipe Schmidt",
         numero="100",
         bairro="Centro",
-        municipio="Florianopolis",
+        municipio="Tubarao",
         uf="SC",
         cep="88010000"
     )

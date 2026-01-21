@@ -140,7 +140,7 @@ async def emitir_nota_do_pdf():
         logradouro="RUA DR FLAVIO AUGUSTO TEIXEIRA FILHO",
         numero="40",
         bairro="CENTRO",
-        municipio="FLORIANOPOLIS",  # Município correto
+        municipio="TUBARAO",  # Município correto
         uf="SC",  # Estado correto
         cep="88010000"  # CEP Florianópolis
     )

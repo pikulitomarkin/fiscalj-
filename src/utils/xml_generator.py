@@ -198,7 +198,7 @@ class NFSeXMLGenerator:
         
         # 1. locPrest - Local da Prestação
         loc_prest = SubElement(parent, "locPrest")
-        SubElement(loc_prest, "cLocPrestacao").text = "4205407"  # Florianópolis
+        SubElement(loc_prest, "cLocPrestacao").text = "4218707"  # Tubarão/SC
         
         # 2. cServ - Elemento container para códigos e descrição do serviço
         c_serv_elem = SubElement(parent, "cServ")
