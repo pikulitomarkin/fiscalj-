@@ -643,7 +643,7 @@ def render_batch_emission():
                                 }
                                 
                                 prestador = {
-                                    'cnpj': '59418245000186',
+                                    'cnpj': '58645846000169',
                                 }
                                 
                                 # Barra de progresso
@@ -693,7 +693,7 @@ def render_batch_emission():
                                         # Prestador
                                         app_logger.info(f"[{idx+1}] Criando objeto Prestador...")
                                         prestador_obj = PrestadorServico(
-                                            cnpj='59418245000186',
+                                            cnpj='58645846000169',
                                             inscricao_municipal='8259069',
                                             razao_social='VSB SERVICOS MEDICOS LTDA',
                                             logradouro='Rua Exemplo',
