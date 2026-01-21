@@ -447,7 +447,19 @@ class NFSeXMLGenerator:
             with open(key_file, 'rb') as f:
                 key_data = f.read()
             
-            # Configurar assinador XMLDSig
+            # Encontrar o elemento infDPS que tem o atributo Id
+            inf_dps = root.find('.//{http://www.sped.fazenda.gov.br/nfse}infDPS')
+            if inf_dps is None:
+                inf_dps = root.find('.//infDPS')  # Tentar sem namespace
+            
+            if inf_dps is None:
+                raise ValueError("Elemento infDPS não encontrado no XML")
+            
+            id_dps = inf_dps.get('Id')
+            if not id_dps:
+                raise ValueError("Atributo Id não encontrado no elemento infDPS")
+            
+            # Configurar assinador XMLDSig com referência ao ID
             signer = XMLSigner(
                 method=methods.enveloped,  # Assinatura envelopada (dentro do XML)
                 signature_algorithm='rsa-sha256',  # Algoritmo de assinatura
@@ -455,11 +467,12 @@ class NFSeXMLGenerator:
                 c14n_algorithm='http://www.w3.org/TR/2001/REC-xml-c14n-20010315'
             )
             
-            # Assinar XML
+            # Assinar XML referenciando o infDPS pelo Id
             signed_root = signer.sign(
                 root,
                 key=key_data,
-                cert=cert_data
+                cert=cert_data,
+                reference_uri=f"#{id_dps}"  # Referência para o elemento com o ID
             )
             
             # Converter de volta para string
