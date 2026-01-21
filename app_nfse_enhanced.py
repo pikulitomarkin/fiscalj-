@@ -114,8 +114,14 @@ def login_page():
             submit = st.form_submit_button("🚀 Entrar", use_container_width=True)
             
             if submit:
-                # Autenticação simplificada (credenciais: admin/admin)
-                if username == "admin" and password == "admin":
+                # Autenticação simplificada - múltiplos usuários
+                credenciais_validas = {
+                    "admin": "admin",
+                    "vsb": "vsb2026",
+                    "medico": "vsb123"
+                }
+                
+                if username in credenciais_validas and password == credenciais_validas[username]:
                     st.session_state.authenticated = True
                     st.session_state.username = username
                     st.session_state.token = "authenticated"
@@ -124,6 +130,7 @@ def login_page():
                     st.rerun()
                 else:
                     st.error("❌ Usuário ou senha inválidos")
+                    st.info("💡 Credenciais válidas: admin/admin, vsb/vsb2026, medico/vsb123")
 
 
 def logout():

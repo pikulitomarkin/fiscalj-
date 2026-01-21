@@ -38,6 +38,14 @@ def setup_certificates():
         try:
             print("\n🔓 Decodificando certificados Base64...")
             
+            # Limpar e corrigir padding do Base64
+            cert_b64 = cert_b64.strip().replace('\n', '').replace('\r', '').replace(' ', '')
+            key_b64 = key_b64.strip().replace('\n', '').replace('\r', '').replace(' ', '')
+            
+            # Adicionar padding se necessário (Base64 deve ser múltiplo de 4)
+            cert_b64 += '=' * (4 - len(cert_b64) % 4) if len(cert_b64) % 4 else ''
+            key_b64 += '=' * (4 - len(key_b64) % 4) if len(key_b64) % 4 else ''
+            
             # Decodificar cert.pem
             try:
                 cert_content = base64.b64decode(cert_b64)
