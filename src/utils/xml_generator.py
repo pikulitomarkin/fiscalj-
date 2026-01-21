@@ -124,7 +124,7 @@ class NFSeXMLGenerator:
         SubElement(inf_dps, "tpEmit").text = "1"
         
         # 8. cLocEmi - Código IBGE do município emissor
-        SubElement(inf_dps, "cLocEmi").text = "4205407"  # Florianópolis-SC
+        SubElement(inf_dps, "cLocEmi").text = "4218707"  # Tubarão-SC
         
         # 9. prest - Dados do Prestador
         prest_elem = SubElement(inf_dps, "prest")
