@@ -5,9 +5,16 @@ import sys
 
 print("Iniciando NFS-e Automation System...")
 
+# Get PORT from environment and convert to string explicitly
 port = str(os.environ.get("PORT", "8501"))
 print(f"PORT={port}")
 
+# CRITICAL: Remove STREAMLIT_SERVER_PORT to prevent Railway from passing $PORT as literal string
+if "STREAMLIT_SERVER_PORT" in os.environ:
+    del os.environ["STREAMLIT_SERVER_PORT"]
+    print("Removed STREAMLIT_SERVER_PORT from environment")
+
+# Run certificate initialization
 print("Inicializando certificados...")
 print("="*60)
 result = subprocess.run([sys.executable, "railway_init.py"])
@@ -15,6 +22,7 @@ print("="*60)
 print(f"Inicializacao de certificados concluida (exit code: {result.returncode})")
 print()
 
+# Start Streamlit
 print(f"Iniciando Streamlit na porta {port}...")
 os.execvp(
     sys.executable,
