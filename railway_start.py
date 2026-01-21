@@ -5,30 +5,43 @@ import subprocess
 import sys
 
 print("🚀 Iniciando NFS-e Automation System...")
+print(f"Python: {sys.version}")
+print(f"Working Directory: {os.getcwd()}")
 
 # Get PORT from environment
 port = os.environ.get("PORT", "8501")
 print(f"PORT={port}")
 
-# Run certificate initialization
+# Run certificate initialization (não bloqueia se falhar)
 print("📜 Inicializando certificados...")
 print("="*60)
-result = subprocess.run([sys.executable, "railway_init.py"])
-print("="*60)
-print(f"✅ Inicialização de certificados concluída (exit code: {result.returncode})")
+try:
+    result = subprocess.run([sys.executable, "railway_init.py"], timeout=30)
+    print("="*60)
+    print(f"✅ Inicialização de certificados concluída (exit code: {result.returncode})")
+except Exception as e:
+    print("="*60)
+    print(f"⚠️ Erro na inicialização de certificados: {e}")
+    print("   Continuando sem certificados...")
 print()
 
 # Start Streamlit
 print(f"🌐 Iniciando Streamlit na porta {port}...")
-os.execvp(
-    sys.executable,
-    [
-        sys.executable, "-m", "streamlit", "run",
-        "app_nfse_enhanced.py",
-        "--server.port", port,
-        "--server.address", "0.0.0.0",
-        "--server.headless", "true",
-        "--server.enableCORS", "false",
-        "--server.enableXsrfProtection", "false"
-    ]
-)
+print("="*60)
+
+try:
+    os.execvp(
+        sys.executable,
+        [
+            sys.executable, "-m", "streamlit", "run",
+            "app_nfse_enhanced.py",
+            "--server.port", port,
+            "--server.address", "0.0.0.0",
+            "--server.headless", "true",
+            "--server.enableCORS", "false",
+            "--server.enableXsrfProtection", "false"
+        ]
+    )
+except Exception as e:
+    print(f"❌ Erro ao iniciar Streamlit: {e}")
+    sys.exit(1)

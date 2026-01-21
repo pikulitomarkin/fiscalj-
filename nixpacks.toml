@@ -5,4 +5,4 @@ nixPkgs = ['python311']
 cmds = ['pip install --upgrade pip', 'pip install -r requirements.txt']
 
 [start]
-cmd = 'streamlit run app_nfse_enhanced.py --server.port $PORT --server.address 0.0.0.0 --server.headless true'
+cmd = 'python railway_start.py'
