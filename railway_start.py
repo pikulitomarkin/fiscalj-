@@ -7,7 +7,7 @@ import sys
 print("🚀 Iniciando NFS-e Automation System...")
 print(f"Python: {sys.version}")
 print(f"Working Directory: {os.getcwd()}")
-print(f"Build: v2.2 - Tubarão/SC CNPJ 58645846000169 IM 8259069")  # Versão para forçar rebuild
+print(f"Build: v2.3 - Tubarão/SC CNPJ 58645846000169 IM 8259069")  # Versão para forçar rebuild
 
 # Get PORT from environment
 port = os.environ.get("PORT", "8501")

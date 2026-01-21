@@ -1,4 +1,4 @@
-# Core Framework
+# Core Framework - v2.3 rebuild forced
 streamlit==1.30.0
 python-dotenv==1.0.0
 
