@@ -133,7 +133,7 @@ async def emitir_nota_do_pdf():
     
     # ========== CONFIGURAÇÃO DO PRESTADOR ==========
     prestador = PrestadorServico(
-        cnpj="59418245000186",
+        cnpj="58645846000169",
         inscricao_municipal="8259069",  # Indicador Municipal correto
         razao_social="GABRIEL SALEH SERVICOS MEDICOS LTDA",
         nome_fantasia="GABRIEL SALEH",

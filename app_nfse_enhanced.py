@@ -363,9 +363,9 @@ def render_single_emission():
         else:
             # Preparar dados
             prestador = PrestadorServico(
-                cnpj='59418245000186',
+                cnpj='58645846000169',
                 inscricao_municipal='8259069',
-                razao_social='GABRIEL SALEH SERVICOS MEDICOS LTDA',
+                razao_social='VSB SERVICOS MEDICOS LTDA',
                 logradouro='Rua Exemplo',
                 numero='123',
                 bairro='Centro',

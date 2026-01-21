@@ -58,7 +58,7 @@ async def emitir_nota_cliente():
     
     # ========== CONFIGURAÇÃO DO PRESTADOR ==========
     prestador = PrestadorServico(
-        cnpj="59418245000186",
+        cnpj="58645846000169",
         inscricao_municipal="123456",  # ⚠️ AJUSTAR COM INSCRIÇÃO REAL
         razao_social="GABRIEL SALEH SERVICOS MEDICOS LTDA",
         nome_fantasia="GABRIEL SALEH",
