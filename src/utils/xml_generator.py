@@ -89,7 +89,7 @@ class NFSeXMLGenerator:
         numero_dps = str(self._dps_counter).zfill(15)  # 15 dígitos para o ID
         numero_dps_element = str(self._dps_counter)  # Número SEM zeros à esquerda para o elemento nDPS
         
-        id_dps = f"DPS4205407{1 if len(cnpj_prestador) == 11 else 2}{cnpj_prestador}{serie_dps}{numero_dps}"
+        id_dps = f"DPS4218707{1 if len(cnpj_prestador) == 11 else 2}{cnpj_prestador}{serie_dps}{numero_dps}"
         inf_dps.set("Id", id_dps)
         
         # ORDEM CORRETA CONFORME XSD v1.01:
