@@ -1,11 +1,8 @@
-[tool.nixpacks]
-providers = ["python"]
-
-[phases.setup]
-nixPkgs = ["python311Full", "python311Packages.pip", "gcc", "libffi", "openssl"]
+﻿[phases.setup]
+nixPkgs = ['python311']
 
 [phases.install]
-cmds = ["python -m pip install --upgrade pip", "python -m pip install -r requirements.txt"]
+cmds = ['pip install --upgrade pip', 'pip install -r requirements.txt']
 
 [start]
-cmd = "python railway_init.py && streamlit run app_nfse_enhanced.py --server.port $PORT --server.address 0.0.0.0 --server.headless true"
+cmd = 'streamlit run app_nfse_enhanced.py --server.port $PORT --server.address 0.0.0.0 --server.headless true'
