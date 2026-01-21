@@ -364,14 +364,14 @@ def render_single_emission():
             # Preparar dados
             prestador = PrestadorServico(
                 cnpj='58645846000169',
-                inscricao_municipal='8259069',
+                inscricao_municipal='8259069',  # IM Tubarão/SC
                 razao_social='VSB SERVICOS MEDICOS LTDA',
                 logradouro='Rua Exemplo',
                 numero='123',
                 bairro='Centro',
-                municipio='Florianopolis',
+                municipio='Tubarao',
                 uf='SC',
-                cep='88010000'
+                cep='88704000'
             )
             
             cpf_limpo = tomador_cpf.replace('.', '').replace('-', '').replace('/', '')
@@ -694,14 +694,14 @@ def render_batch_emission():
                                         app_logger.info(f"[{idx+1}] Criando objeto Prestador...")
                                         prestador_obj = PrestadorServico(
                                             cnpj='58645846000169',
-                                            inscricao_municipal='8259069',
+                                            inscricao_municipal='8259069',  # IM Tubarão/SC
                                             razao_social='VSB SERVICOS MEDICOS LTDA',
                                             logradouro='Rua Exemplo',
                                             numero='123',
                                             bairro='Centro',
-                                            municipio='Florianopolis',
+                                            municipio='Tubarao',
                                             uf='SC',
-                                            cep='88010000'
+                                            cep='88704000'
                                         )
                                         app_logger.info(f"[{idx+1}] Prestador criado com sucesso")
                                         
