@@ -236,8 +236,8 @@ async def exemplo_emissao():
     # Dados do prestador
     prestador = PrestadorServico(
         cnpj="58645846000169",
-        razao_social="GABRIEL SALEH SERVICOS MEDICOS LTDA",
-        nome_fantasia="Dr. Gabriel Saleh",
+        razao_social="VSB SERVICOS MEDICOS LTDA",
+        nome_fantasia="VSB",
         logradouro="Rua Felipe Schmidt",
         numero="100",
         bairro="Centro",

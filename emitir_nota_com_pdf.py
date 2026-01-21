@@ -29,7 +29,7 @@ async def emitir_nota_do_pdf():
     print("="*80)
     print(f"🌐 URL: https://adn.nfse.gov.br/adn/DFe")
     print(f"🔐 Ambiente: PRODUCAO")
-    print(f"📜 Certificado: GABRIEL SALEH SERVICOS MEDICOS LTDA")
+    print(f"📜 Certificado: VSB SERVICOS MEDICOS LTDA")
     print("="*80 + "\n")
     
     # ========== CARREGAR PDF ==========
@@ -135,8 +135,8 @@ async def emitir_nota_do_pdf():
     prestador = PrestadorServico(
         cnpj="58645846000169",
         inscricao_municipal="8259069",  # Indicador Municipal correto
-        razao_social="GABRIEL SALEH SERVICOS MEDICOS LTDA",
-        nome_fantasia="GABRIEL SALEH",
+        razao_social="VSB SERVICOS MEDICOS LTDA",
+        nome_fantasia="VSB",
         logradouro="RUA DR FLAVIO AUGUSTO TEIXEIRA FILHO",
         numero="40",
         bairro="CENTRO",

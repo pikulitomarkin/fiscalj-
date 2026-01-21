@@ -695,7 +695,7 @@ def render_batch_emission():
                                         prestador_obj = PrestadorServico(
                                             cnpj='59418245000186',
                                             inscricao_municipal='8259069',
-                                            razao_social='GABRIEL SALEH SERVICOS MEDICOS LTDA',
+                                            razao_social='VSB SERVICOS MEDICOS LTDA',
                                             logradouro='Rua Exemplo',
                                             numero='123',
                                             bairro='Centro',
