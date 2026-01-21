@@ -459,20 +459,22 @@ class NFSeXMLGenerator:
             if not id_dps:
                 raise ValueError("Atributo Id não encontrado no elemento infDPS")
             
-            # Configurar assinador XMLDSig com referência ao ID
+            # Configurar assinador XMLDSig conforme padrão NFSe Nacional
+            # A assinatura deve ser inserida dentro do elemento DPS, depois de infDPS
             signer = XMLSigner(
-                method=methods.enveloped,  # Assinatura envelopada (dentro do XML)
-                signature_algorithm='rsa-sha256',  # Algoritmo de assinatura
-                digest_algorithm='sha256',  # Algoritmo de hash
-                c14n_algorithm='http://www.w3.org/TR/2001/REC-xml-c14n-20010315'
+                method=methods.enveloped,
+                signature_algorithm='rsa-sha256',
+                digest_algorithm='sha256',
+                c14n_algorithm='http://www.w3.org/2001/REC-xml-c14n-20010315'
             )
             
-            # Assinar XML referenciando o infDPS pelo Id
+            # Assinar o elemento infDPS especificamente
+            # A assinatura será inserida após infDPS no elemento DPS
             signed_root = signer.sign(
                 root,
                 key=key_data,
                 cert=cert_data,
-                reference_uri=f"#{id_dps}"  # Referência para o elemento com o ID
+                reference_uri=id_dps  # Usar o ID sem o # - signxml adiciona automaticamente
             )
             
             # Converter de volta para string
