@@ -5,9 +5,32 @@ Adiciona colunas xml_content e pdf_content à tabela nfse_emissoes
 
 import asyncio
 import os
+import sys
+from pathlib import Path
+
+# Adicionar diretório raiz ao path
+sys.path.insert(0, str(Path(__file__).parent))
+
 import asyncpg
-from config.settings import settings
-from src.utils.logger import app_logger
+from dotenv import load_dotenv
+
+# Carregar variáveis de ambiente
+load_dotenv()
+
+# Configurações
+DATABASE_URL = os.getenv('DATABASE_URL')
+if not DATABASE_URL:
+    print("❌ DATABASE_URL não está definida")
+    print("   Configure a variável de ambiente DATABASE_URL")
+    sys.exit(1)
+
+# Converter DATABASE_URL de SQLAlchemy para asyncpg se necessário
+if DATABASE_URL.startswith('postgresql+asyncpg://'):
+    # Remover o driver asyncpg
+    DATABASE_URL = DATABASE_URL.replace('postgresql+asyncpg://', 'postgresql://')
+elif DATABASE_URL.startswith('postgresql+psycopg2://'):
+    # Converter de psycopg2 para asyncpg
+    DATABASE_URL = DATABASE_URL.replace('postgresql+psycopg2://', 'postgresql://')
 
 
 async def run_migration():
@@ -15,8 +38,8 @@ async def run_migration():
     
     try:
         # Conectar ao banco de dados
-        conn = await asyncpg.connect(settings.DATABASE_URL)
-        app_logger.info("✅ Conectado ao banco de dados")
+        conn = await asyncpg.connect(DATABASE_URL)
+        print("✅ Conectado ao banco de dados")
         
         # Verificar se as colunas já existem
         check_xml = await conn.fetchval("""
@@ -35,38 +58,51 @@ async def run_migration():
         
         # Migração 1: Adicionar coluna xml_content
         if check_xml == 0:
-            app_logger.info("📝 Adicionando coluna xml_content...")
+            print("📝 Adicionando coluna xml_content...")
             await conn.execute("""
                 ALTER TABLE nfse_emissoes 
                 ADD COLUMN xml_content TEXT
             """)
-            app_logger.info("✅ Coluna xml_content adicionada com sucesso")
+            print("✅ Coluna xml_content adicionada com sucesso")
         else:
-            app_logger.info("ℹ️ Coluna xml_content já existe")
+            print("ℹ️ Coluna xml_content já existe")
         
         # Migração 2: Adicionar coluna pdf_content
         if check_pdf == 0:
-            app_logger.info("📝 Adicionando coluna pdf_content...")
+            print("📝 Adicionando coluna pdf_content...")
             await conn.execute("""
                 ALTER TABLE nfse_emissoes 
                 ADD COLUMN pdf_content BYTEA
             """)
-            app_logger.info("✅ Coluna pdf_content adicionada com sucesso")
+            print("✅ Coluna pdf_content adicionada com sucesso")
         else:
-            app_logger.info("ℹ️ Coluna pdf_content já existe")
+            print("ℹ️ Coluna pdf_content já existe")
         
         # Verificar quantos registros existem
         total = await conn.fetchval("SELECT COUNT(*) FROM nfse_emissoes")
-        app_logger.info(f"📊 Total de registros na tabela: {total}")
+        print(f"📊 Total de registros na tabela: {total}")
         
         # Fechar conexão
         await conn.close()
-        app_logger.info("✅ Migração concluída com sucesso!")
+        print("✅ Migração concluída com sucesso!")
         
         return True
         
     except Exception as e:
-        app_logger.error(f"❌ Erro na migração: {e}", exc_info=True)
+        print(f"❌ Erro na migração: {e}")
+        
+        # Mensagem customizada para erro de conexão
+        if "recusou" in str(e) or "Connection refused" in str(e) or "refused" in str(e).lower():
+            print("\n⚠️ Banco de dados não está acessível neste momento")
+            print("   Possíveis causas:")
+            print("   1. Banco está em outro servidor (Railway/Cloud)")
+            print("   2. DATABASE_URL está incorreta")
+            print("   3. Firewall está bloqueando a conexão")
+            print("\n💡 A migração será executada automaticamente no Railway!")
+            return False
+        
+        import traceback
+        traceback.print_exc()
         return False
 
 
@@ -76,9 +112,8 @@ async def populate_existing_files():
     que possuem arquivos no filesystem.
     """
     try:
-        from pathlib import Path
-        conn = await asyncpg.connect(settings.DATABASE_URL)
-        app_logger.info("✅ Conectado ao banco de dados para popular arquivos existentes")
+        conn = await asyncpg.connect(DATABASE_URL)
+        print("✅ Conectado ao banco de dados para popular arquivos existentes")
         
         # Buscar registros com paths mas sem conteúdo
         registros = await conn.fetch("""
@@ -88,7 +123,7 @@ async def populate_existing_files():
             AND (xml_content IS NULL OR pdf_content IS NULL)
         """)
         
-        app_logger.info(f"📊 Encontrados {len(registros)} registros para popular")
+        print(f"📊 Encontrados {len(registros)} registros para popular")
         
         updated_xml = 0
         updated_pdf = 0
@@ -109,9 +144,9 @@ async def populate_existing_files():
                         WHERE id = $2
                     """, xml_content, reg_id)
                     updated_xml += 1
-                    app_logger.info(f"  ✅ XML populado para NFS-e {chave or reg_id}")
+                    print(f"  ✅ XML populado para NFS-e {chave or reg_id}")
                 except Exception as e:
-                    app_logger.warning(f"  ⚠️ Erro ao ler XML {xml_path}: {e}")
+                    print(f"  ⚠️ Erro ao ler XML {xml_path}: {e}")
             
             # Tentar ler PDF
             if pdf_path and Path(pdf_path).exists():
@@ -123,17 +158,19 @@ async def populate_existing_files():
                         WHERE id = $2
                     """, pdf_content, reg_id)
                     updated_pdf += 1
-                    app_logger.info(f"  ✅ PDF populado para NFS-e {chave or reg_id}")
+                    print(f"  ✅ PDF populado para NFS-e {chave or reg_id}")
                 except Exception as e:
-                    app_logger.warning(f"  ⚠️ Erro ao ler PDF {pdf_path}: {e}")
+                    print(f"  ⚠️ Erro ao ler PDF {pdf_path}: {e}")
         
         await conn.close()
-        app_logger.info(f"✅ População concluída: {updated_xml} XMLs e {updated_pdf} PDFs")
+        print(f"✅ População concluída: {updated_xml} XMLs e {updated_pdf} PDFs")
         
         return True
         
     except Exception as e:
-        app_logger.error(f"❌ Erro ao popular arquivos: {e}", exc_info=True)
+        print(f"❌ Erro ao popular arquivos: {e}")
+        import traceback
+        traceback.print_exc()
         return False
 
 
