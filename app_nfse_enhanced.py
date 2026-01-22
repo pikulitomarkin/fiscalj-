@@ -6,6 +6,7 @@ import streamlit as st
 import asyncio
 from pathlib import Path
 from datetime import datetime
+import pytz
 from typing import List, Dict, Any
 import sys
 import os
@@ -458,10 +459,13 @@ def render_single_emission():
                         st.success("✅ NFS-e emitida com sucesso!")
                         
                         # Salvar na sessão
+                        tz_br = pytz.timezone('America/Sao_Paulo')
+                        data_emissao = datetime.now(tz_br).strftime("%d/%m/%Y %H:%M:%S")
+                        
                         nfse_data = {
                             'chave_acesso': resultado['chave_acesso'],
                             'numero': resultado.get('numero', 'N/A'),
-                            'data_emissao': datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
+                            'data_emissao': data_emissao,
                             'tomador_nome': tomador_nome,
                             'tomador_cpf': tomador_cpf,
                             'valor': valor_servico,
@@ -823,10 +827,13 @@ def render_batch_emission():
                                             log_text.code("\n".join(logs[-20:]))
                                             
                                             # Salvar na sessão
+                                            tz_br = pytz.timezone('America/Sao_Paulo')
+                                            data_emissao = datetime.now(tz_br).strftime("%d/%m/%Y %H:%M:%S")
+                                            
                                             nfse_data = {
                                                 'chave_acesso': resultado['chave_acesso'],
                                                 'numero': resultado.get('numero', 'N/A'),
-                                                'data_emissao': datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
+                                                'data_emissao': data_emissao,
                                                 'tomador_nome': record.get('nome', 'N/A'),
                                                 'tomador_cpf': record.get('cpf', 'N/A'),
                                                 'valor': valor_servico,
