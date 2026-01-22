@@ -210,9 +210,9 @@ class NFSeRequest(BaseModel):
         json_schema_extra={
             "example": {
                 "prestador": {
-                    "cnpj": "12345678000190",
-                    "inscricao_municipal": "123456",
-                    "razao_social": "Empresa Prestadora LTDA",
+                    "cnpj": "58645846000169",
+                    "inscricao_municipal": "93442",
+                    "razao_social": "VSB SERVICOS MEDICOS LTDA",
                     "logradouro": "Av. Principal",
                     "numero": "1000",
                     "bairro": "Centro",

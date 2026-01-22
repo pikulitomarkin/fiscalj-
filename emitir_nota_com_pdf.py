@@ -134,7 +134,7 @@ async def emitir_nota_do_pdf():
     # ========== CONFIGURAÇÃO DO PRESTADOR ==========
     prestador = PrestadorServico(
         cnpj="58645846000169",
-        inscricao_municipal="8259069",  # Indicador Municipal correto
+        inscricao_municipal="93442",  # Inscrição Municipal VSB
         razao_social="VSB SERVICOS MEDICOS LTDA",
         nome_fantasia="VSB",
         logradouro="RUA DR FLAVIO AUGUSTO TEIXEIRA FILHO",

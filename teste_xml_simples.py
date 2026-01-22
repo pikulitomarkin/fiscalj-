@@ -20,7 +20,7 @@ print("="*60)
 # Criar dados de teste com o CNPJ correto
 prestador = PrestadorServico(
     cnpj="58645846000169",  # VSB SERVICOS MEDICOS LTDA
-    inscricao_municipal="8259069",
+    inscricao_municipal="93442",
     razao_social="VSB SERVICOS MEDICOS LTDA",
     nome_fantasia="VSB",
     logradouro="Rua Exemplo",

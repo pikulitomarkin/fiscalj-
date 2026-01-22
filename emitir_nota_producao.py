@@ -59,7 +59,7 @@ async def emitir_nota_cliente():
     # ========== CONFIGURAÇÃO DO PRESTADOR ==========
     prestador = PrestadorServico(
         cnpj="58645846000169",
-        inscricao_municipal="123456",  # ⚠️ AJUSTAR COM INSCRIÇÃO REAL
+        inscricao_municipal="93442",
         razao_social="VSB SERVICOS MEDICOS LTDA",
         nome_fantasia="VSB",
         logradouro="RUA DR FLAVIO AUGUSTO TEIXEIRA FILHO",

@@ -14,7 +14,7 @@ print("="*60)
 # Criar dados de teste
 prestador = PrestadorServico(
     cnpj="58645846000169",
-    inscricao_municipal="8259069",
+    inscricao_municipal="93442",
     razao_social="VSB SERVICOS MEDICOS LTDA",
     nome_fantasia="VSB",
     logradouro="Rua Exemplo",

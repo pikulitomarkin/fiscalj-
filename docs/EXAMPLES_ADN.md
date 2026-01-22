@@ -12,9 +12,9 @@ generator = NFSeXMLGenerator(ambiente=TipoAmbiente.HOMOLOGACAO)
 
 # Dados do prestador
 prestador = PrestadorServico(
-    cnpj="12345678000190",
-    inscricao_municipal="123456",
-    razao_social="Minha Empresa LTDA",
+    cnpj="58645846000169",
+    inscricao_municipal="93442",
+    razao_social="VSB SERVICOS MEDICOS LTDA",
     nome_fantasia="Minha Empresa"
 )
 

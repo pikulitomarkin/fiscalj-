@@ -53,9 +53,9 @@ class NFSeService:
         Em produção, isso viria de um banco de dados ou arquivo de configuração.
         """
         return {
-            "cnpj": "12345678000190",
-            "inscricao_municipal": "123456",
-            "razao_social": "Empresa Prestadora LTDA",
+            "cnpj": "58645846000169",
+            "inscricao_municipal": "93442",
+            "razao_social": "VSB SERVICOS MEDICOS LTDA",
             "nome_fantasia": "Empresa",
             "logradouro": "Av. Principal",
             "numero": "1000",
