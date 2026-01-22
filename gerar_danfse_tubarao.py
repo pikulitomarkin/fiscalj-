@@ -577,8 +577,8 @@ class GeradorDANFSETubarao:
         c.setFont("Helvetica", 7)
         c.setFillColor(colors.grey)
         c.drawString(margin_left, y - 0.3*cm, "IRRF")
-        c.drawString(margin_left + 3.5*cm, y - 0.3*cm, "CP")
-        c.drawString(margin_left + 7*cm, y - 0.3*cm, "CSLL")
+        c.drawString(margin_left + 3.5*cm, y - 0.3*cm, "CP Retido")
+        c.drawString(margin_left + 7*cm, y - 0.3*cm, "PIS/COFINS/CSLL Retidos")
         
         c.setFillColor(colors.black)
         c.setFont("Helvetica", 9)
@@ -589,9 +589,9 @@ class GeradorDANFSETubarao:
         y -= 1*cm
         c.setFont("Helvetica", 7)
         c.setFillColor(colors.grey)
-        c.drawString(margin_left, y - 0.3*cm, "PIS")
-        c.drawString(margin_left + 3.5*cm, y - 0.3*cm, "COFINS")
-        c.drawString(margin_left + 7*cm, y - 0.3*cm, "Retenção do PIS/COFINS")
+        c.drawString(margin_left, y - 0.3*cm, "PIS Devido")
+        c.drawString(margin_left + 3.5*cm, y - 0.3*cm, "COFINS Devido")
+        c.drawString(margin_left + 7*cm, y - 0.3*cm, "Retenção do PIS/COFINS/CSLL")
         c.drawString(margin_left + 12*cm, y - 0.3*cm, "TOTAL TRIBUTAÇÃO FEDERAL")
         
         c.setFillColor(colors.black)
@@ -634,8 +634,8 @@ class GeradorDANFSETubarao:
         y -= 1*cm
         c.setFont("Helvetica", 7)
         c.setFillColor(colors.grey)
-        c.drawString(margin_left, y - 0.3*cm, "IRRF, CP,CSLL - Retidos")
-        c.drawString(margin_left + 4*cm, y - 0.3*cm, "PIS/COFINS Retidos")
+        c.drawString(margin_left, y - 0.3*cm, "IRRF, CP, PIS, COFINS, CSLL")
+        c.drawString(margin_left + 4*cm, y - 0.3*cm, "PIS/COFINS Devidos")
         c.drawString(margin_left + 12.5*cm, y - 0.3*cm, "Valor Líquido da NFS-e")
         
         c.setFillColor(colors.black)

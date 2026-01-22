@@ -116,9 +116,9 @@ class Servico(BaseModel):
     aliquota_iss: Decimal = Field(..., ge=0, le=5, description="Alíquota ISS em %")
     valor_iss: Optional[Decimal] = Field(None, ge=0, description="Valor do ISS (calculado)")
     
-    # Retenções federais
-    aliquota_pis: Optional[Decimal] = Field(Decimal(0), ge=0)
-    aliquota_cofins: Optional[Decimal] = Field(Decimal(0), ge=0)
+    # Retenções federais (valores conforme nota fiscal padrão)
+    aliquota_pis: Optional[Decimal] = Field(Decimal("0.65"), ge=0, description="Alíquota PIS em % (padrão 0.65%)")
+    aliquota_cofins: Optional[Decimal] = Field(Decimal("3.00"), ge=0, description="Alíquota COFINS em % (padrão 3%)")
     aliquota_inss: Optional[Decimal] = Field(Decimal(0), ge=0)
     aliquota_ir: Optional[Decimal] = Field(Decimal(0), ge=0)
     aliquota_csll: Optional[Decimal] = Field(Decimal(0), ge=0)
@@ -134,11 +134,11 @@ class Servico(BaseModel):
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
-                "descricao": "Serviços de consultoria em tecnologia",
-                "valor_servico": "1000.00",
-                "aliquota_iss": "2.5",
-                "item_lista_servico": "1.09",
-                "discriminacao": "Consultoria especializada em desenvolvimento de software"
+                "descricao": "teleconsulta",
+                "valor_servico": "89.00",
+                "aliquota_iss": "3.00",
+                "item_lista_servico": "04.01.01",
+                "discriminacao": "Serviço de teleconsulta médica"
             }
         }
     )
@@ -225,10 +225,10 @@ class NFSeRequest(BaseModel):
                     "nome": "João da Silva"
                 },
                 "servico": {
-                    "descricao": "Consultoria em TI",
-                    "valor_servico": "1500.00",
-                    "aliquota_iss": "2.0",
-                    "item_lista_servico": "1.09"
+                    "descricao": "teleconsulta",
+                    "valor_servico": "89.00",
+                    "aliquota_iss": "3.00",
+                    "item_lista_servico": "04.01.01"
                 },
                 "hash_transacao": "abc123def456"
             }
