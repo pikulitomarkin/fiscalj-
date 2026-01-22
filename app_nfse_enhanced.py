@@ -880,19 +880,13 @@ def render_batch_emission():
                                                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                                                 zip_filename = f"nfse_lote_pdfs_{timestamp}.zip"
                                                 
+                                                # Salvar no session_state para download fora do form
+                                                st.session_state['batch_zip_data'] = zip_buffer.getvalue()
+                                                st.session_state['batch_zip_filename'] = zip_filename
+                                                st.session_state['batch_zip_count'] = len(pdf_files)
+                                                
                                                 st.success(f"✅ {len(pdf_files)} PDFs prontos para download!")
-                                                
-                                                # Botão de download automático
-                                                st.download_button(
-                                                    label=f"📥 Baixar {len(pdf_files)} PDFs (ZIP)",
-                                                    data=zip_buffer,
-                                                    file_name=zip_filename,
-                                                    mime="application/zip",
-                                                    use_container_width=True,
-                                                    type="primary"
-                                                )
-                                                
-                                                st.info("💡 **Dica:** O download foi preparado automaticamente. Clique no botão acima para salvar!")
+                                                st.info("💡 **Dica:** Clique no botão de download abaixo do formulário para salvar os PDFs!")
                                             else:
                                                 st.warning("⚠️ Nenhum arquivo PDF disponível para download")
                                                 st.info("💡 Acesse o menu 'NFS-e Emitidas' para visualizar todas as notas")
@@ -908,6 +902,23 @@ def render_batch_emission():
             except Exception as e:
                 st.error(f"❌ Erro ao processar PDF: {e}")
                 app_logger.error(f"Erro no processamento do PDF: {e}", exc_info=True)
+    
+    # Botão de download fora do form
+    if 'batch_zip_data' in st.session_state and st.session_state.get('batch_zip_data'):
+        st.markdown("---")
+        st.markdown("### 📥 Download dos PDFs")
+        st.download_button(
+            label=f"📥 Baixar {st.session_state.get('batch_zip_count', 0)} PDFs (ZIP)",
+            data=st.session_state['batch_zip_data'],
+            file_name=st.session_state.get('batch_zip_filename', 'nfse_lote.zip'),
+            mime="application/zip",
+            use_container_width=True,
+            type="primary"
+        )
+        # Limpar após mostrar
+        if st.button("🗑️ Limpar download", use_container_width=True):
+            del st.session_state['batch_zip_data']
+            st.rerun()
 
 
 # ============================================================================
