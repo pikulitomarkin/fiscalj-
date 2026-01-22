@@ -52,6 +52,21 @@ PERSISTENCE_FILE = DATA_DIR / "nfse_emitidas.json"  # Backup local
 # Instância do repositório
 nfse_repository = NFSeRepository()
 
+# Flag para controlar inicialização do banco
+_db_initialized = False
+
+def ensure_db_initialized():
+    """Garante que o banco de dados está inicializado."""
+    global _db_initialized
+    if not _db_initialized:
+        try:
+            asyncio.run(init_database())
+            app_logger.info("Banco de dados PostgreSQL inicializado")
+            _db_initialized = True
+        except Exception as e:
+            app_logger.warning(f"Aviso na inicialização do banco: {e}")
+            _db_initialized = True  # Marcar como tentado para não repetir
+
 def save_emitted_nfse():
     """Salva as NFS-e emitidas no PostgreSQL."""
     try:
@@ -59,6 +74,9 @@ def save_emitted_nfse():
         PERSISTENCE_FILE.parent.mkdir(parents=True, exist_ok=True)
         with open(PERSISTENCE_FILE, 'w', encoding='utf-8') as f:
             json.dump(st.session_state.emitted_nfse, f, ensure_ascii=False, indent=2, default=str)
+        
+        # Garantir que o banco está inicializado antes de salvar
+        ensure_db_initialized()
         
         # Salvar no PostgreSQL (última nota adicionada)
         if st.session_state.emitted_nfse:
@@ -117,7 +135,8 @@ def init_session_state():
     if 'page' not in st.session_state:
         st.session_state.page = 'login'
     if 'emitted_nfse' not in st.session_state:
-        # Carrega notas salvas do arquivo
+        # Primeiro inicializa o banco, depois carrega notas
+        ensure_db_initialized()
         st.session_state.emitted_nfse = load_emitted_nfse()
     if 'last_emission' not in st.session_state:
         st.session_state.last_emission = None
@@ -1540,20 +1559,16 @@ def get_file_download_link(file_path: str, link_text: str) -> str:
 
 def main():
     """Função principal da aplicação."""
-    # Inicializa estado da sessão
+    # Inicializa estado da sessão (já inicializa o banco internamente)
     init_session_state()
     
-    # Inicializa banco de dados (cria tabelas se não existirem)
-    try:
-        asyncio.run(init_database())
-        app_logger.info("Banco de dados PostgreSQL inicializado")
-        
-        # Sincronizar notas do JSON local para PostgreSQL (uma vez)
-        if 'db_synced' not in st.session_state:
+    # Sincronizar notas do JSON local para PostgreSQL (uma vez)
+    if 'db_synced' not in st.session_state:
+        try:
             sync_json_to_db()
-            st.session_state.db_synced = True
-    except Exception as e:
-        app_logger.warning(f"Aviso no banco de dados: {e}")
+        except Exception as e:
+            app_logger.warning(f"Aviso na sincronização: {e}")
+        st.session_state.db_synced = True
     
     # Verifica autenticação
     if not st.session_state.authenticated:
