@@ -262,11 +262,23 @@ def render_overview():
                     # Botões de download
                     col_xml, col_pdf = st.columns(2)
                     with col_xml:
-                        if nfse.get('xml_path'):
-                            download_file_button(nfse['xml_path'], "📄 XML", key=f"xml_{nfse['chave_acesso']}")
+                        if nfse.get('xml_path') or nfse.get('chave_acesso'):
+                            download_file_button(
+                                nfse.get('xml_path', ''), 
+                                "📄 XML", 
+                                key=f"xml_{nfse['chave_acesso']}", 
+                                chave_acesso=nfse.get('chave_acesso'),
+                                file_type='xml'
+                            )
                     with col_pdf:
-                        if nfse.get('pdf_path'):
-                            download_file_button(nfse['pdf_path'], "📑 PDF", key=f"pdf_{nfse['chave_acesso']}")
+                        if nfse.get('pdf_path') or nfse.get('chave_acesso'):
+                            download_file_button(
+                                nfse.get('pdf_path', ''), 
+                                "📑 PDF", 
+                                key=f"pdf_{nfse['chave_acesso']}",
+                                chave_acesso=nfse.get('chave_acesso'),
+                                file_type='pdf'
+                            )
     else:
         st.info("ℹ️ Nenhuma NFS-e emitida ainda")
 
@@ -487,12 +499,24 @@ def render_single_emission():
                         col_xml, col_pdf, col_space = st.columns([1, 1, 2])
                         
                         with col_xml:
-                            if resultado.get('xml_path'):
-                                download_file_button(resultado['xml_path'], "📄 Baixar XML", key="single_xml")
+                            if resultado.get('xml_path') or resultado.get('chave_acesso'):
+                                download_file_button(
+                                    resultado.get('xml_path', ''), 
+                                    "📄 Baixar XML", 
+                                    key="single_xml",
+                                    chave_acesso=resultado.get('chave_acesso'),
+                                    file_type='xml'
+                                )
                         
                         with col_pdf:
-                            if resultado.get('pdf_path'):
-                                download_file_button(resultado['pdf_path'], "📑 Baixar PDF", key="single_pdf")
+                            if resultado.get('pdf_path') or resultado.get('chave_acesso'):
+                                download_file_button(
+                                    resultado.get('pdf_path', ''), 
+                                    "📑 Baixar PDF", 
+                                    key="single_pdf",
+                                    chave_acesso=resultado.get('chave_acesso'),
+                                    file_type='pdf'
+                                )
                         
                     else:
                         st.error(f"❌ Erro na emissão: {resultado.get('mensagem', 'Erro desconhecido')}")
@@ -1330,12 +1354,24 @@ def render_emitted_nfse_list():
             col_xml, col_pdf, col_view = st.columns(3)
             
             with col_xml:
-                if nfse.get('xml_path'):
-                    download_file_button(nfse['xml_path'], "📄 Baixar XML", key=f"list_xml_{idx}")
+                if nfse.get('xml_path') or nfse.get('chave_acesso'):
+                    download_file_button(
+                        nfse.get('xml_path', ''), 
+                        "📄 Baixar XML", 
+                        key=f"list_xml_{idx}",
+                        chave_acesso=nfse.get('chave_acesso'),
+                        file_type='xml'
+                    )
             
             with col_pdf:
-                if nfse.get('pdf_path'):
-                    download_file_button(nfse['pdf_path'], "📑 Baixar PDF", key=f"list_pdf_{idx}")
+                if nfse.get('pdf_path') or nfse.get('chave_acesso'):
+                    download_file_button(
+                        nfse.get('pdf_path', ''), 
+                        "📑 Baixar PDF", 
+                        key=f"list_pdf_{idx}",
+                        chave_acesso=nfse.get('chave_acesso'),
+                        file_type='pdf'
+                    )
             
             with col_view:
                 if nfse.get('xml_path'):
@@ -1553,17 +1589,42 @@ def render_settings():
 # FUNÇÕES AUXILIARES
 # ============================================================================
 
-def download_file_button(file_path: str, label: str, key: str):
-    """Cria botão de download para arquivo."""
+def download_file_button(file_path: str, label: str, key: str, chave_acesso: str = None, file_type: str = None):
+    """Cria botão de download para arquivo.
+    
+    Args:
+        file_path: Caminho do arquivo local
+        label: Texto do botão
+        key: Chave única do botão
+        chave_acesso: Chave de acesso da NFS-e (para buscar do banco)
+        file_type: Tipo do arquivo ('xml' ou 'pdf') para buscar do banco
+    """
     try:
-        if not Path(file_path).exists():
-            st.warning(f"⚠️ Arquivo não encontrado: {file_path}")
+        file_data = None
+        file_name = Path(file_path).name if file_path else "arquivo"
+        
+        # Tentar ler do arquivo local
+        if file_path and Path(file_path).exists():
+            with open(file_path, 'rb') as f:
+                file_data = f.read()
+        # Se não existir localmente, tentar buscar do banco de dados
+        elif chave_acesso and file_type:
+            nfse_repository = NFSeRepository(get_db_session())
+            
+            if file_type == 'xml':
+                xml_content = asyncio.run(nfse_repository.get_nfse_xml(chave_acesso))
+                if xml_content:
+                    file_data = xml_content.encode('utf-8')
+                    file_name = f"nfse_{chave_acesso}.xml"
+            elif file_type == 'pdf':
+                pdf_content = asyncio.run(nfse_repository.get_nfse_pdf(chave_acesso))
+                if pdf_content:
+                    file_data = pdf_content
+                    file_name = f"danfse_{chave_acesso}.pdf"
+        
+        if not file_data:
+            st.warning(f"⚠️ Arquivo não encontrado: {file_name}")
             return
-        
-        with open(file_path, 'rb') as f:
-            file_data = f.read()
-        
-        file_name = Path(file_path).name
         
         st.download_button(
             label=label,
