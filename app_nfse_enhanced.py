@@ -41,41 +41,65 @@ st.set_page_config(
 
 
 # ============================================================================
-# FUNÇÕES DE PERSISTÊNCIA DE DADOS
+# FUNÇÕES DE PERSISTÊNCIA DE DADOS (PostgreSQL)
 # ============================================================================
 
-# Diretório de dados persistentes (Railway ou local)
-# Se RAILWAY_VOLUME_MOUNT_PATH existe, usa ele diretamente (já aponta para /app/data)
-# Senão, cria pasta 'data' no diretório local
+# Diretório de dados persistentes (Railway ou local) - para arquivos PDF/XML
 DATA_DIR = Path(os.getenv('RAILWAY_VOLUME_MOUNT_PATH', './data'))
 DATA_DIR.mkdir(parents=True, exist_ok=True)
-PERSISTENCE_FILE = DATA_DIR / "nfse_emitidas.json"
+PERSISTENCE_FILE = DATA_DIR / "nfse_emitidas.json"  # Backup local
+
+# Instância do repositório
+nfse_repository = NFSeRepository()
 
 def save_emitted_nfse():
-    """Salva as NFS-e emitidas em arquivo JSON."""
+    """Salva as NFS-e emitidas no PostgreSQL."""
     try:
-        # Garantir que o diretório existe
+        # Salvar backup em JSON local também
         PERSISTENCE_FILE.parent.mkdir(parents=True, exist_ok=True)
-        
         with open(PERSISTENCE_FILE, 'w', encoding='utf-8') as f:
-            json.dump(st.session_state.emitted_nfse, f, ensure_ascii=False, indent=2)
-        app_logger.info(f"Notas salvas em {PERSISTENCE_FILE}: {len(st.session_state.emitted_nfse)} registros")
+            json.dump(st.session_state.emitted_nfse, f, ensure_ascii=False, indent=2, default=str)
+        
+        # Salvar no PostgreSQL (última nota adicionada)
+        if st.session_state.emitted_nfse:
+            last_nfse = st.session_state.emitted_nfse[-1]
+            asyncio.run(nfse_repository.save_nfse(last_nfse))
+        
+        app_logger.info(f"Notas salvas: {len(st.session_state.emitted_nfse)} registros")
     except Exception as e:
-        app_logger.error(f"Erro ao salvar notas em {PERSISTENCE_FILE}: {e}")
+        app_logger.error(f"Erro ao salvar notas: {e}")
 
 def load_emitted_nfse():
-    """Carrega as NFS-e emitidas do arquivo JSON."""
+    """Carrega as NFS-e emitidas do PostgreSQL."""
+    try:
+        # Tentar carregar do PostgreSQL primeiro
+        nfse_list = asyncio.run(nfse_repository.get_all_nfse())
+        if nfse_list:
+            app_logger.info(f"Notas carregadas do PostgreSQL: {len(nfse_list)} registros")
+            return nfse_list
+        
+        # Fallback para arquivo JSON local
+        if PERSISTENCE_FILE.exists():
+            with open(PERSISTENCE_FILE, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                app_logger.info(f"Notas carregadas do JSON: {len(data)} registros")
+                return data
+    except Exception as e:
+        app_logger.error(f"Erro ao carregar notas: {e}")
+    
+    return []
+
+def sync_json_to_db():
+    """Sincroniza notas do JSON local para o PostgreSQL."""
     try:
         if PERSISTENCE_FILE.exists():
             with open(PERSISTENCE_FILE, 'r', encoding='utf-8') as f:
                 data = json.load(f)
-                app_logger.info(f"Notas carregadas de {PERSISTENCE_FILE}: {len(data)} registros")
-                return data
-        else:
-            app_logger.info(f"Arquivo {PERSISTENCE_FILE} não encontrado. Iniciando com lista vazia.")
+                if data:
+                    asyncio.run(nfse_repository.save_batch_nfse(data))
+                    app_logger.info(f"Sincronizado {len(data)} notas do JSON para PostgreSQL")
     except Exception as e:
-        app_logger.error(f"Erro ao carregar notas de {PERSISTENCE_FILE}: {e}")
-    return []
+        app_logger.error(f"Erro ao sincronizar notas: {e}")
 
 
 # ============================================================================
@@ -1519,20 +1543,23 @@ def main():
     # Inicializa estado da sessão
     init_session_state()
     
-    # Inicializa banco de dados (se necessário)
+    # Inicializa banco de dados (cria tabelas se não existirem)
     try:
-        # Como init_database é async, tentamos executar se possível
-        # Para simplificar, pulamos por enquanto - o banco será criado quando necessário
-        pass
+        asyncio.run(init_database())
+        app_logger.info("Banco de dados PostgreSQL inicializado")
+        
+        # Sincronizar notas do JSON local para PostgreSQL (uma vez)
+        if 'db_synced' not in st.session_state:
+            sync_json_to_db()
+            st.session_state.db_synced = True
     except Exception as e:
-        app_logger.warning(f"Banco de dados não inicializado: {e}")
+        app_logger.warning(f"Aviso no banco de dados: {e}")
     
     # Verifica autenticação
     if not st.session_state.authenticated:
         login_page()
     else:
         render_dashboard()
-
 
 if __name__ == "__main__":
     main()

@@ -37,20 +37,24 @@ GRANT ALL ON SCHEMA audit TO nfse_user;
 -- Estrutura das tabelas (para referência):
 
 /*
--- Tabela: nfse_emissoes
+-- Tabela: nfse_emissoes (ATUALIZADA v2.0)
 CREATE TABLE nfse_emissoes (
     id SERIAL PRIMARY KEY,
-    hash_transacao VARCHAR(64) UNIQUE NOT NULL,
+    hash_transacao VARCHAR(64),
+    chave_acesso VARCHAR(100) UNIQUE,
     numero_nfse VARCHAR(20),
     protocolo VARCHAR(50),
     codigo_verificacao VARCHAR(20),
-    cpf_tomador VARCHAR(11) NOT NULL,
-    nome_tomador VARCHAR(150) NOT NULL,
+    cpf_tomador VARCHAR(14),  -- CPF ou CNPJ
+    nome_tomador VARCHAR(150),
     status VARCHAR(20) NOT NULL,
     mensagem TEXT,
     valor_servico NUMERIC(10, 2),
     valor_iss NUMERIC(10, 2),
     descricao_servico TEXT,
+    xml_path VARCHAR(500),
+    pdf_path VARCHAR(500),
+    resultado_json TEXT,  -- JSON com resultado completo
     data_emissao TIMESTAMP,
     data_processamento TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -59,11 +63,37 @@ CREATE TABLE nfse_emissoes (
     usuario VARCHAR(50)
 );
 
+CREATE INDEX idx_nfse_chave ON nfse_emissoes(chave_acesso);
 CREATE INDEX idx_nfse_hash ON nfse_emissoes(hash_transacao);
 CREATE INDEX idx_nfse_cpf ON nfse_emissoes(cpf_tomador);
 CREATE INDEX idx_nfse_status ON nfse_emissoes(status);
 CREATE INDEX idx_nfse_created ON nfse_emissoes(created_at);
+*/
 
+-- ============================================================
+-- MIGRAÇÃO: Atualizar tabela existente (se necessário)
+-- ============================================================
+
+-- Adicionar colunas novas (execute se a tabela já existe)
+ALTER TABLE nfse_emissoes ADD COLUMN IF NOT EXISTS chave_acesso VARCHAR(100);
+ALTER TABLE nfse_emissoes ADD COLUMN IF NOT EXISTS xml_path VARCHAR(500);
+ALTER TABLE nfse_emissoes ADD COLUMN IF NOT EXISTS pdf_path VARCHAR(500);
+ALTER TABLE nfse_emissoes ADD COLUMN IF NOT EXISTS resultado_json TEXT;
+
+-- Atualizar tamanho do cpf_tomador para aceitar CNPJ
+ALTER TABLE nfse_emissoes ALTER COLUMN cpf_tomador TYPE VARCHAR(14);
+
+-- Tornar campos opcionais
+ALTER TABLE nfse_emissoes ALTER COLUMN hash_transacao DROP NOT NULL;
+ALTER TABLE nfse_emissoes ALTER COLUMN cpf_tomador DROP NOT NULL;
+ALTER TABLE nfse_emissoes ALTER COLUMN nome_tomador DROP NOT NULL;
+
+-- Criar índice único na chave_acesso
+CREATE UNIQUE INDEX IF NOT EXISTS idx_nfse_chave_unique ON nfse_emissoes(chave_acesso) WHERE chave_acesso IS NOT NULL;
+
+-- ============================================================
+
+/*
 -- Tabela: logs_processamento
 CREATE TABLE logs_processamento (
     id SERIAL PRIMARY KEY,

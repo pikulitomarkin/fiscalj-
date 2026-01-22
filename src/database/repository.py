@@ -3,9 +3,10 @@ Repositório de acesso a dados (Data Access Layer).
 """
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta
-from sqlalchemy import select, func, and_
+from sqlalchemy import select, func, and_, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 import uuid
+import json
 
 from src.database.models import NFSeEmissao, LogProcessamento, Usuario
 from src.models.schemas import ProcessingResult
@@ -15,6 +16,97 @@ from config.database import get_db_session
 
 class NFSeRepository:
     """Repositório para operações de NFS-e."""
+    
+    async def save_nfse(self, nfse_data: Dict[str, Any], usuario: str = "admin") -> int:
+        """
+        Salva uma NFS-e emitida no banco.
+        
+        Args:
+            nfse_data: Dicionário com dados da NFS-e
+            usuario: Nome do usuário que executou
+            
+        Returns:
+            ID do registro criado
+        """
+        async with get_db_session() as session:
+            # Verificar se já existe
+            chave = nfse_data.get('chave_acesso')
+            if chave:
+                stmt = select(NFSeEmissao).where(NFSeEmissao.chave_acesso == chave)
+                result = await session.execute(stmt)
+                existing = result.scalar_one_or_none()
+                if existing:
+                    app_logger.debug(f"NFS-e já existe no banco: {chave[:20]}...")
+                    return existing.id
+            
+            emissao = NFSeEmissao(
+                chave_acesso=nfse_data.get('chave_acesso'),
+                numero_nfse=nfse_data.get('numero'),
+                cpf_tomador=nfse_data.get('tomador_cpf', '').replace('.', '').replace('-', '').replace('/', ''),
+                nome_tomador=nfse_data.get('tomador_nome'),
+                status='sucesso',
+                valor_servico=nfse_data.get('valor'),
+                valor_iss=nfse_data.get('iss'),
+                xml_path=nfse_data.get('xml_path'),
+                pdf_path=nfse_data.get('pdf_path'),
+                resultado_json=json.dumps(nfse_data.get('resultado_completo', {}), default=str),
+                data_emissao=datetime.now(),
+                data_processamento=datetime.now(),
+                usuario=usuario
+            )
+            
+            session.add(emissao)
+            await session.flush()
+            
+            app_logger.info(f"NFS-e salva no banco: ID={emissao.id}, Chave={chave[:20] if chave else 'N/A'}...")
+            
+            return emissao.id
+    
+    async def save_batch_nfse(self, nfse_list: List[Dict[str, Any]], usuario: str = "admin") -> List[int]:
+        """
+        Salva múltiplas NFS-e em lote.
+        
+        Args:
+            nfse_list: Lista de dicionários com dados das NFS-e
+            usuario: Nome do usuário
+            
+        Returns:
+            Lista de IDs criados
+        """
+        ids = []
+        
+        for nfse_data in nfse_list:
+            try:
+                id = await self.save_nfse(nfse_data, usuario)
+                ids.append(id)
+            except Exception as e:
+                app_logger.error(f"Erro ao salvar NFS-e: {e}")
+        
+        app_logger.info(f"{len(ids)} NFS-e salvas no banco")
+        
+        return ids
+    
+    async def get_all_nfse(self, limit: int = 1000) -> List[Dict[str, Any]]:
+        """
+        Retorna todas as NFS-e do banco.
+        
+        Args:
+            limit: Limite de registros
+            
+        Returns:
+            Lista de dicionários com dados das NFS-e
+        """
+        async with get_db_session() as session:
+            stmt = (
+                select(NFSeEmissao)
+                .where(NFSeEmissao.status == 'sucesso')
+                .order_by(desc(NFSeEmissao.created_at))
+                .limit(limit)
+            )
+            result = await session.execute(stmt)
+            emissoes = result.scalars().all()
+            
+            return [e.to_dict() for e in emissoes]
     
     async def save_emissao(self, result: ProcessingResult, usuario: str = "admin") -> int:
         """

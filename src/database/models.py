@@ -16,14 +16,15 @@ class NFSeEmissao(Base):
     id = Column(Integer, primary_key=True, index=True)
     
     # Identificação
-    hash_transacao = Column(String(64), unique=True, index=True, nullable=False)
+    hash_transacao = Column(String(64), index=True)
+    chave_acesso = Column(String(100), unique=True, index=True)
     numero_nfse = Column(String(20), index=True)
     protocolo = Column(String(50), index=True)
     codigo_verificacao = Column(String(20))
     
     # Tomador
-    cpf_tomador = Column(String(11), index=True, nullable=False)
-    nome_tomador = Column(String(150), nullable=False)
+    cpf_tomador = Column(String(14), index=True)  # CPF ou CNPJ
+    nome_tomador = Column(String(150))
     
     # Status
     status = Column(String(20), nullable=False, index=True)  # sucesso, erro, pendente
@@ -33,6 +34,13 @@ class NFSeEmissao(Base):
     valor_servico = Column(Numeric(10, 2))
     valor_iss = Column(Numeric(10, 2))
     descricao_servico = Column(Text)
+    
+    # Caminhos dos arquivos
+    xml_path = Column(String(500))
+    pdf_path = Column(String(500))
+    
+    # Resultado completo (JSON)
+    resultado_json = Column(Text)  # JSON string com resultado completo
     
     # Timestamps
     data_emissao = Column(DateTime, default=datetime.utcnow)
@@ -45,7 +53,23 @@ class NFSeEmissao(Base):
     usuario = Column(String(50))
     
     def __repr__(self):
-        return f"<NFSeEmissao(id={self.id}, hash={self.hash_transacao[:8]}..., status={self.status})>"
+        return f"<NFSeEmissao(id={self.id}, chave={self.chave_acesso[:20] if self.chave_acesso else 'N/A'}..., status={self.status})>"
+    
+    def to_dict(self):
+        """Converte para dicionário compatível com session_state."""
+        return {
+            'id': self.id,
+            'chave_acesso': self.chave_acesso,
+            'numero': self.numero_nfse,
+            'data_emissao': self.data_emissao.strftime("%d/%m/%Y %H:%M:%S") if self.data_emissao else None,
+            'tomador_nome': self.nome_tomador,
+            'tomador_cpf': self.cpf_tomador,
+            'valor': float(self.valor_servico) if self.valor_servico else 0,
+            'iss': float(self.valor_iss) if self.valor_iss else 0,
+            'xml_path': self.xml_path,
+            'pdf_path': self.pdf_path,
+            'status': self.status
+        }
 
 
 class LogProcessamento(Base):
