@@ -364,7 +364,7 @@ def render_single_emission():
             # Preparar dados
             prestador = PrestadorServico(
                 cnpj='58645846000169',
-                inscricao_municipal='8259069',  # IM obrigatória para Tubarão/SC
+                inscricao_municipal='93442',  # IM obrigatória para Tubarão/SC
                 razao_social='VSB SERVICOS MEDICOS LTDA',
                 logradouro='Rua Exemplo',
                 numero='123',
@@ -694,7 +694,7 @@ def render_batch_emission():
                                         app_logger.info(f"[{idx+1}] Criando objeto Prestador...")
                                         prestador_obj = PrestadorServico(
                                             cnpj='58645846000169',
-                                            inscricao_municipal='8259069',  # IM obrigatória para Tubarão/SC
+                                            inscricao_municipal='93442',  # IM obrigatória para Tubarão/SC
                                             razao_social='VSB SERVICOS MEDICOS LTDA',
                                             logradouro='Rua Exemplo',
                                             numero='123',
