@@ -175,9 +175,8 @@ class NFSeXMLGenerator:
         # 5. regTrib - Regimes Tributários (obrigatório)
         reg_trib = SubElement(parent, "regTrib")
         # opSimpNac: 1=Não optante, 2=Optante SN (ME/EPP), 3=MEI
-        SubElement(reg_trib, "opSimpNac").text = "2"  # 2=Optante SN (Microempresa)
-        # regApTribSN - Regime de Apuração: 1=Caixa, 2=Competência
-        SubElement(reg_trib, "regApTribSN").text = "1"  # 1=Caixa
+        SubElement(reg_trib, "opSimpNac").text = "1"  # 1=Não optante do Simples Nacional
+        # regApTribSN - NÃO informar para não optante
         SubElement(reg_trib, "regEspTrib").text = "0"  # 0=Nenhum
     
     def _add_tomador_v101(self, parent: Element, tomador: TomadorServico):
