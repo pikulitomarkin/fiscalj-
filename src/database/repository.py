@@ -28,6 +28,8 @@ class NFSeRepository:
         Returns:
             ID do registro criado
         """
+        from pathlib import Path
+        
         async with get_db_session() as session:
             # Verificar se já existe
             chave = nfse_data.get('chave_acesso')
@@ -39,6 +41,24 @@ class NFSeRepository:
                     app_logger.debug(f"NFS-e já existe no banco: {chave[:20]}...")
                     return existing.id
             
+            # Ler conteúdo dos arquivos XML e PDF
+            xml_content = None
+            pdf_content = None
+            
+            xml_path = nfse_data.get('xml_path')
+            if xml_path and Path(xml_path).exists():
+                try:
+                    xml_content = Path(xml_path).read_text(encoding='utf-8')
+                except Exception as e:
+                    app_logger.warning(f"Erro ao ler XML: {e}")
+            
+            pdf_path = nfse_data.get('pdf_path')
+            if pdf_path and Path(pdf_path).exists():
+                try:
+                    pdf_content = Path(pdf_path).read_bytes()
+                except Exception as e:
+                    app_logger.warning(f"Erro ao ler PDF: {e}")
+            
             emissao = NFSeEmissao(
                 chave_acesso=nfse_data.get('chave_acesso'),
                 numero_nfse=nfse_data.get('numero'),
@@ -49,6 +69,8 @@ class NFSeRepository:
                 valor_iss=nfse_data.get('iss'),
                 xml_path=nfse_data.get('xml_path'),
                 pdf_path=nfse_data.get('pdf_path'),
+                xml_content=xml_content,
+                pdf_content=pdf_content,
                 resultado_json=json.dumps(nfse_data.get('resultado_completo', {}), default=str),
                 data_emissao=datetime.now(),
                 data_processamento=datetime.now(),
@@ -107,6 +129,59 @@ class NFSeRepository:
             emissoes = result.scalars().all()
             
             return [e.to_dict() for e in emissoes]
+    
+    async def get_nfse_xml(self, chave_acesso: str) -> Optional[str]:
+        """
+        Retorna o conteúdo XML de uma NFS-e.
+        
+        Args:
+            chave_acesso: Chave de acesso da NFS-e
+            
+        Returns:
+            Conteúdo XML ou None
+        """
+        async with get_db_session() as session:
+            stmt = select(NFSeEmissao).where(NFSeEmissao.chave_acesso == chave_acesso)
+            result = await session.execute(stmt)
+            nfse = result.scalar_one_or_none()
+            
+            if nfse and nfse.xml_content:
+                return nfse.xml_content
+            return None
+    
+    async def get_nfse_pdf(self, chave_acesso: str) -> Optional[bytes]:
+        """
+        Retorna o conteúdo PDF de uma NFS-e.
+        
+        Args:
+            chave_acesso: Chave de acesso da NFS-e
+            
+        Returns:
+            Conteúdo PDF em bytes ou None
+        """
+        async with get_db_session() as session:
+            stmt = select(NFSeEmissao).where(NFSeEmissao.chave_acesso == chave_acesso)
+            result = await session.execute(stmt)
+            nfse = result.scalar_one_or_none()
+            
+            if nfse and nfse.pdf_content:
+                return nfse.pdf_content
+            return None
+    
+    async def get_nfse_by_id(self, nfse_id: int) -> Optional[NFSeEmissao]:
+        """
+        Retorna uma NFS-e pelo ID.
+        
+        Args:
+            nfse_id: ID da NFS-e
+            
+        Returns:
+            Objeto NFSeEmissao ou None
+        """
+        async with get_db_session() as session:
+            stmt = select(NFSeEmissao).where(NFSeEmissao.id == nfse_id)
+            result = await session.execute(stmt)
+            return result.scalar_one_or_none()
     
     async def save_emissao(self, result: ProcessingResult, usuario: str = "admin") -> int:
         """

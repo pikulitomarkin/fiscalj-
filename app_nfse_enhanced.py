@@ -1134,10 +1134,32 @@ def render_emitted_nfse_list():
                             pdfs_encontrados = 0
                             
                             for nota in nfse_list:
+                                pdf_content = None
+                                nome_arquivo = f"nfse_{nota.get('numero', 'N_A')}.pdf"
+                                
+                                # Tentar arquivo local primeiro
                                 pdf_path = nota.get('pdf_path')
                                 if pdf_path and Path(pdf_path).exists():
-                                    # Adicionar PDF ao ZIP
-                                    zip_file.write(pdf_path, Path(pdf_path).name)
+                                    pdf_content = Path(pdf_path).read_bytes()
+                                    nome_arquivo = Path(pdf_path).name
+                                # Senão, buscar do banco
+                                elif nota.get('pdf_content'):
+                                    pdf_content = nota.get('pdf_content')
+                                    if isinstance(pdf_content, str):
+                                        # Se vier como string base64
+                                        import base64
+                                        pdf_content = base64.b64decode(pdf_content)
+                                # Último recurso: buscar do banco por chave
+                                elif nota.get('chave_acesso'):
+                                    try:
+                                        pdf_bytes = asyncio.run(nfse_repository.get_nfse_pdf(nota['chave_acesso']))
+                                        if pdf_bytes:
+                                            pdf_content = pdf_bytes
+                                    except Exception as e:
+                                        app_logger.warning(f"Erro ao buscar PDF do banco: {e}")
+                                
+                                if pdf_content:
+                                    zip_file.writestr(nome_arquivo, pdf_content)
                                     pdfs_encontrados += 1
                         
                         if pdfs_encontrados > 0:
@@ -1180,10 +1202,28 @@ def render_emitted_nfse_list():
                             xmls_encontrados = 0
                             
                             for nota in nfse_list:
+                                xml_content = None
+                                nome_arquivo = f"nfse_{nota.get('numero', 'N_A')}.xml"
+                                
+                                # Tentar arquivo local primeiro
                                 xml_path = nota.get('xml_path')
                                 if xml_path and Path(xml_path).exists():
-                                    # Adicionar XML ao ZIP
-                                    zip_file.write(xml_path, Path(xml_path).name)
+                                    xml_content = Path(xml_path).read_text(encoding='utf-8')
+                                    nome_arquivo = Path(xml_path).name
+                                # Senão, buscar do banco
+                                elif nota.get('xml_content'):
+                                    xml_content = nota.get('xml_content')
+                                # Último recurso: buscar do banco por chave
+                                elif nota.get('chave_acesso'):
+                                    try:
+                                        xml_text = asyncio.run(nfse_repository.get_nfse_xml(nota['chave_acesso']))
+                                        if xml_text:
+                                            xml_content = xml_text
+                                    except Exception as e:
+                                        app_logger.warning(f"Erro ao buscar XML do banco: {e}")
+                                
+                                if xml_content:
+                                    zip_file.writestr(nome_arquivo, xml_content.encode('utf-8'))
                                     xmls_encontrados += 1
                         
                         if xmls_encontrados > 0:

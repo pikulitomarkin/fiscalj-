@@ -1,7 +1,7 @@
 """
 Modelos ORM do banco de dados usando SQLAlchemy.
 """
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, Numeric, Text
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, Numeric, Text, LargeBinary
 from sqlalchemy.sql import func
 from datetime import datetime
 
@@ -39,6 +39,10 @@ class NFSeEmissao(Base):
     xml_path = Column(String(500))
     pdf_path = Column(String(500))
     
+    # Conteúdo dos arquivos (armazenado no banco)
+    xml_content = Column(Text)  # Conteúdo XML
+    pdf_content = Column(LargeBinary)  # Conteúdo PDF em binário
+    
     # Resultado completo (JSON)
     resultado_json = Column(Text)  # JSON string com resultado completo
     
@@ -68,6 +72,8 @@ class NFSeEmissao(Base):
             'iss': float(self.valor_iss) if self.valor_iss else 0,
             'xml_path': self.xml_path,
             'pdf_path': self.pdf_path,
+            'xml_content': self.xml_content,
+            'pdf_content': self.pdf_content,
             'status': self.status
         }
 

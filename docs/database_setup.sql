@@ -80,6 +80,10 @@ ALTER TABLE nfse_emissoes ADD COLUMN IF NOT EXISTS xml_path VARCHAR(500);
 ALTER TABLE nfse_emissoes ADD COLUMN IF NOT EXISTS pdf_path VARCHAR(500);
 ALTER TABLE nfse_emissoes ADD COLUMN IF NOT EXISTS resultado_json TEXT;
 
+-- Adicionar colunas para conteúdo dos arquivos (v2.1)
+ALTER TABLE nfse_emissoes ADD COLUMN IF NOT EXISTS xml_content TEXT;
+ALTER TABLE nfse_emissoes ADD COLUMN IF NOT EXISTS pdf_content BYTEA;
+
 -- Atualizar tamanho do cpf_tomador para aceitar CNPJ
 ALTER TABLE nfse_emissoes ALTER COLUMN cpf_tomador TYPE VARCHAR(14);
 
