@@ -17,7 +17,7 @@ from pathlib import Path
 from src.models.schemas import PrestadorServico, TomadorServico, Servico, NFSeRequest, TipoAmbiente
 from src.utils.xml_generator import NFSeXMLGenerator
 from src.api.client import NFSeAPIClient
-from gerar_danfse_v2 import gerar_danfse
+from gerar_danfse_tubarao import gerar_danfse_tubarao
 from config.settings import settings
 
 
@@ -203,9 +203,35 @@ async def emitir_nfse_com_pdf(
         xml_path.write_text(nfse_xml, encoding='utf-8')
         print(f"    OK {xml_path}")
         
-        # 7. Gerar PDF
+        # 7. Gerar PDF (DANFSE no padrão Tubarão/SC)
         print("[6] Gerando DANFSE (PDF)...")
-        pdf_path = gerar_danfse(str(xml_path))
+        
+        # Preparar dados para o DANFSE
+        dados_danfse = {
+            'chave_acesso': chave_acesso,
+            'numero': resultado.get('numero', ''),
+            'numero_dps': '',
+            'serie_dps': '900',
+            'competencia': datetime.now().strftime('%d/%m/%Y'),
+            'data_emissao': datetime.now().strftime('%d/%m/%Y %H:%M:%S'),
+            'prestador_cnpj': prestador.cnpj,
+            'prestador_im': prestador.inscricao_municipal or '93442',
+            'prestador_razao': prestador.razao_social,
+            'prestador_endereco': f"{prestador.logradouro}, {prestador.numero}, {prestador.bairro}",
+            'prestador_municipio': f"{prestador.municipio} - {prestador.uf}",
+            'prestador_cep': prestador.cep,
+            'prestador_telefone': prestador.telefone or '(48) 9150-1441',
+            'prestador_email': prestador.email or 'VINISILV@HOTMAIL.COM',
+            'tomador_cpf': tomador.cpf or tomador.cnpj or '',
+            'tomador_nome': tomador.nome,
+            'tomador_email': tomador.email or '-',
+            'valor': str(servico.valor_servico),
+            'aliquota_iss': str(servico.aliquota_iss or '3.00'),
+            'codigo_servico': f"{servico.item_lista_servico} - Medicina.",
+            'descricao_servico': servico.discriminacao or 'teleconsulta',
+        }
+        
+        pdf_path = gerar_danfse_tubarao(dados_danfse)
         pdf_size = Path(pdf_path).stat().st_size
         print(f"    OK {pdf_path} ({pdf_size} bytes)")
         
