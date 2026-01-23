@@ -276,7 +276,7 @@ class NFSeXMLGenerator:
             base_calculo = servico.valor_servico - (servico.valor_deducoes or 0)
             
             # piscofins - PIS + COFINS combinados em um único elemento
-            # Estrutura conforme XSD: vBCPisCofins, pAliqPis, pAliqCofins, vPis, vCofins, tpRetPisCofins
+            # Ordem conforme XSD: CST, vBCPisCofins, pAliqPis, pAliqCofins, vPis, vCofins, tpRetPisCofins
             has_pis_cofins = (
                 (servico.aliquota_pis and servico.aliquota_pis > 0) or
                 (servico.aliquota_cofins and servico.aliquota_cofins > 0)
@@ -284,16 +284,20 @@ class NFSeXMLGenerator:
             if has_pis_cofins:
                 piscofins_elem = SubElement(trib_fed_elem, "piscofins")
                 
+                # CST - Código de Situação Tributária (OBRIGATÓRIO - primeiro elemento)
+                # 01 = Operação Tributável com Alíquota Básica
+                SubElement(piscofins_elem, "CST").text = "01"
+                
                 # vBCPisCofins - Base de Cálculo PIS/COFINS
                 SubElement(piscofins_elem, "vBCPisCofins").text = f"{base_calculo:.2f}"
                 
                 # pAliqPis - Percentual/Alíquota do PIS
                 if servico.aliquota_pis and servico.aliquota_pis > 0:
-                    SubElement(piscofins_elem, "pAliqPis").text = f"{servico.aliquota_pis:.4f}"
+                    SubElement(piscofins_elem, "pAliqPis").text = f"{servico.aliquota_pis:.2f}"
                 
                 # pAliqCofins - Percentual/Alíquota do COFINS
                 if servico.aliquota_cofins and servico.aliquota_cofins > 0:
-                    SubElement(piscofins_elem, "pAliqCofins").text = f"{servico.aliquota_cofins:.4f}"
+                    SubElement(piscofins_elem, "pAliqCofins").text = f"{servico.aliquota_cofins:.2f}"
                 
                 # vPis - Valor do PIS (minúsculo!)
                 if servico.aliquota_pis and servico.aliquota_pis > 0:

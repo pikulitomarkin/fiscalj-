@@ -92,14 +92,17 @@ Documentação da estrutura correta do XML NFS-e no padrão ADN (Ambiente de Dis
         <tribFed>
           <!-- PIS e COFINS combinados em um único elemento -->
           <piscofins>
+            <!-- CST - Código de Situação Tributária (OBRIGATÓRIO - primeiro) -->
+            <CST>01</CST>
+            
             <!-- Base de Cálculo PIS/COFINS -->
             <vBCPisCofins>89.00</vBCPisCofins>
             
-            <!-- Alíquota PIS: 0.65% -->
-            <pAliqPis>0.6500</pAliqPis>
+            <!-- Alíquota PIS: 0.65% (formato: até 2 dígitos + 2 decimais) -->
+            <pAliqPis>0.65</pAliqPis>
             
-            <!-- Alíquota COFINS: 3.00% -->
-            <pAliqCofins>3.0000</pAliqCofins>
+            <!-- Alíquota COFINS: 3.00% (formato: até 2 dígitos + 2 decimais) -->
+            <pAliqCofins>3.00</pAliqCofins>
             
             <!-- Valor PIS: 0.65% de R$ 89,00 = R$ 0,58 -->
             <vPis>0.58</vPis>
@@ -231,9 +234,10 @@ servico = Servico(
 ```xml
 <tribFed>
   <piscofins>
+    <CST>01</CST>
     <vBCPisCofins>1000.00</vBCPisCofins>
-    <pAliqPis>0.6500</pAliqPis>
-    <pAliqCofins>3.0000</pAliqCofins>
+    <pAliqPis>0.65</pAliqPis>
+    <pAliqCofins>3.00</pAliqCofins>
     <vPis>6.50</vPis>          <!-- 0.65% de 1000 -->
     <vCofins>30.00</vCofins>   <!-- 3.00% de 1000 -->
     <tpRetPisCofins>1</tpRetPisCofins>
@@ -260,9 +264,10 @@ servico = Servico(
 **Resultado XML:**
 ```xml
 <tribFed>
-  <piscofins>
+  <piCST>01</CST>
     <vBCPisCofins>5000.00</vBCPisCofins>
-    <pAliqPis>0.6500</pAliqPis>
+    <pAliqPis>0.65</pAliqPis>
+    <pAliqCofins>3./pAliqPis>
     <pAliqCofins>3.0000</pAliqCofins>
     <vPis>32.50</vPis>         <!-- 0.65% de 5000 -->
     <vCofins>150.00</vCofins>  <!-- 3.00% de 5000 -->
@@ -330,17 +335,18 @@ servico = Servico(
 | Elemento | Obrigatório | Descrição | Exemplo |
 |----------|-------------|-----------|---------|
 | `piscofins` | ❌ Não | Container para PIS e COFINS | - |
-| `piscofins/vBCPisCofins` | ✅ Sim* | Base de Cálculo PIS/COFINS | `89.00` |
-| `piscofins/pAliqPis` | ❌ Não | Alíquota PIS (4 decimais) | `0.6500` |
-| `piscofins/pAliqCofins` | ❌ Não | Alíquota COFINS (4 decimais) | `3.0000` |
+| `piscofins/CST` | ✅ Sim* | Código Situação Tributária (01) | `01` |
+| `piscofins/vBCPisCofins` | ❌ Não | Base de Cálculo PIS/COFINS | `89.00` |
+| `piscofins/pAliqPis` | ❌ Não | Alíquota PIS (2 decimais) | `0.65` |
+| `piscofins/pAliqCofins` | ❌ Não | Alíquota COFINS (2 decimais) | `3.00` |
 | `piscofins/vPis` | ❌ Não | Valor do PIS | `0.58` |
 | `piscofins/vCofins` | ❌ Não | Valor do COFINS | `2.67` |
-| `piscofins/tpRetPisCofins` | ✅ Sim* | Tipo de Retenção (1=Retido) | `1` |
+| `piscofins/tpRetPisCofins` | ❌ Não | Tipo de Retenção (1=Retido) | `1` |
 | `vRetCP` | ❌ Não | Contribuição Previdenciária (INSS) | `0.00` |
 | `vRetIRRF` | ❌ Não | Imposto de Renda Retido na Fonte | `0.00` |
 | `vRetCSLL` | ❌ Não | CSLL Retido | `0.00` |
 
-> **\*Nota**: Campos obrigatórios quando o elemento `piscofins` está presente.
+> **\*Nota**: CST é obrigatório e deve ser o primeiro elemento quando `piscofins` está presente.
 
 > **Nota**: O elemento `tribFed` só é incluído se **pelo menos um** dos tributos federais for maior que zero.
 
