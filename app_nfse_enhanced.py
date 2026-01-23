@@ -1322,12 +1322,14 @@ def render_emitted_nfse_list():
                     # Limpar banco de dados PostgreSQL
                     db_removidos = 0
                     try:
+                        app_logger.info("Iniciando limpeza do banco de dados PostgreSQL...")
                         ensure_db_initialized()
                         db_removidos = asyncio.run(nfse_repository.delete_all_nfse())
-                        app_logger.info(f"Banco de dados limpo: {db_removidos} registros removidos")
+                        app_logger.info(f"✅ Banco de dados limpo com sucesso: {db_removidos} registros removidos")
                     except Exception as e:
                         erro_msg = f"Erro ao limpar banco de dados: {e}"
                         app_logger.error(erro_msg)
+                        app_logger.exception(e)
                         erros.append(erro_msg)
                     
                     # Limpar dados da sessão
@@ -1346,11 +1348,22 @@ def render_emitted_nfse_list():
                         app_logger.error(erro_msg)
                         erros.append(erro_msg)
                     
+                    # Verificar se realmente limpou do banco
+                    try:
+                        verificacao = asyncio.run(nfse_repository.get_all_nfse())
+                        if verificacao:
+                            app_logger.warning(f"⚠️ ATENÇÃO: Ainda há {len(verificacao)} registros no banco após limpeza!")
+                            erros.append(f"Banco ainda contém {len(verificacao)} registros após limpeza")
+                        else:
+                            app_logger.info("✅ Verificação: Banco está realmente vazio")
+                    except Exception as e:
+                        app_logger.error(f"Erro ao verificar limpeza: {e}")
+                    
                     # Exibir resultados
                     if erros:
-                        st.warning(f"⚠️ Limpeza parcial: {total_notas} nota(s), {arquivos_removidos} arquivo(s) e {db_removidos} registro(s) do banco removidos. Erros: {'; '.join(erros)}")
+                        st.error(f"⚠️ Limpeza com problemas: {total_notas} nota(s) da sessão, {arquivos_removidos} arquivo(s) e {db_removidos} registro(s) do banco. ⚠️ ERROS: {'; '.join(erros)}")
                     else:
-                        st.success(f"✅ Histórico limpo! {total_notas} nota(s), {arquivos_removidos} arquivo(s) e {db_removidos} registro(s) do banco removidos.")
+                        st.success(f"✅ Histórico limpo completamente! {total_notas} nota(s), {arquivos_removidos} arquivo(s) e {db_removidos} registro(s) do banco removidos. Recarregue a página para confirmar.")
                     st.rerun()
             
             with col_cancel:
@@ -1602,12 +1615,14 @@ def render_settings():
                     # Limpar banco de dados PostgreSQL
                     db_removidos = 0
                     try:
+                        app_logger.info("Iniciando limpeza do banco de dados PostgreSQL...")
                         ensure_db_initialized()
                         db_removidos = asyncio.run(nfse_repository.delete_all_nfse())
-                        app_logger.info(f"Banco de dados limpo: {db_removidos} registros removidos")
+                        app_logger.info(f"✅ Banco de dados limpo com sucesso: {db_removidos} registros removidos")
                     except Exception as e:
                         erro_msg = f"Erro ao limpar banco de dados: {e}"
                         app_logger.error(erro_msg)
+                        app_logger.exception(e)
                         erros.append(erro_msg)
                     
                     # Limpar dados da sessão
@@ -1626,11 +1641,22 @@ def render_settings():
                         app_logger.error(erro_msg)
                         erros.append(erro_msg)
                     
+                    # Verificar se realmente limpou do banco
+                    try:
+                        verificacao = asyncio.run(nfse_repository.get_all_nfse())
+                        if verificacao:
+                            app_logger.warning(f"⚠️ ATENÇÃO: Ainda há {len(verificacao)} registros no banco após limpeza!")
+                            erros.append(f"Banco ainda contém {len(verificacao)} registros após limpeza")
+                        else:
+                            app_logger.info("✅ Verificação: Banco está realmente vazio")
+                    except Exception as e:
+                        app_logger.error(f"Erro ao verificar limpeza: {e}")
+                    
                     # Exibir resultados
                     if erros:
-                        st.warning(f"⚠️ Limpeza parcial: {total_notas} nota(s) e {db_removidos} registro(s) do banco removidos. Erros: {'; '.join(erros)}")
+                        st.error(f"⚠️ Limpeza com problemas: {total_notas} nota(s) e {db_removidos} registro(s) do banco. ⚠️ ERROS: {'; '.join(erros)}")
                     else:
-                        st.success(f"✅ Histórico limpo! {total_notas} nota(s) e {db_removidos} registro(s) do banco removidos.")
+                        st.success(f"✅ Histórico limpo completamente! {total_notas} nota(s) e {db_removidos} registro(s) do banco removidos. Recarregue a página para confirmar.")
                     st.rerun()
             
             with col_cancel:

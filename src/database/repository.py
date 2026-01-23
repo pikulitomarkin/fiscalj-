@@ -406,22 +406,36 @@ class LogRepository:
         
         try:
             async with get_db_session() as session:
-                # Conta quantos registros existem
-                stmt_count = select(func.count()).select_from(NFSeEmissao)
-                result = await session.execute(stmt_count)
-                total = result.scalar()
+                # Conta quantos registros existem ANTES
+                stmt_count_before = select(func.count()).select_from(NFSeEmissao)
+                result_before = await session.execute(stmt_count_before)
+                total_before = result_before.scalar()
                 
-                if total > 0:
+                app_logger.info(f"Total de registros ANTES da deleção: {total_before}")
+                
+                if total_before > 0:
                     # Remove todos os registros
                     stmt_delete = delete(NFSeEmissao)
-                    await session.execute(stmt_delete)
-                    # O commit é feito automaticamente pelo context manager
+                    result_delete = await session.execute(stmt_delete)
+                    rows_deleted = result_delete.rowcount
                     
-                    app_logger.info(f"Banco de dados limpo: {total} NFS-e removidas")
-                    return total
+                    # Força o commit
+                    await session.flush()
+                    
+                    # Verifica quantos registros restam DEPOIS
+                    stmt_count_after = select(func.count()).select_from(NFSeEmissao)
+                    result_after = await session.execute(stmt_count_after)
+                    total_after = result_after.scalar()
+                    
+                    app_logger.info(f"Registros deletados (rowcount): {rows_deleted}")
+                    app_logger.info(f"Total de registros DEPOIS da deleção: {total_after}")
+                    app_logger.info(f"Banco de dados limpo: {total_before} NFS-e removidas")
+                    
+                    return total_before
                 else:
                     app_logger.info("Banco de dados já está vazio")
                     return 0
         except Exception as e:
             app_logger.error(f"Erro ao deletar NFS-e do banco: {e}")
+            app_logger.exception(e)  # Log completo da exceção
             raise
