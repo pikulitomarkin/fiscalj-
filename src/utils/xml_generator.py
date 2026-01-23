@@ -283,6 +283,10 @@ class NFSeXMLGenerator:
             if has_pis_cofins:
                 piscofins_elem = SubElement(trib_fed_elem, "piscofins")
                 
+                # CST - Código de Situação Tributária (obrigatório)
+                # 01 = Operação Tributável com Alíquota Básica
+                SubElement(piscofins_elem, "CST").text = "01"
+                
                 # vPIS - Valor do PIS
                 if servico.aliquota_pis and servico.aliquota_pis > 0:
                     v_pis = base_calculo * (servico.aliquota_pis / 100)

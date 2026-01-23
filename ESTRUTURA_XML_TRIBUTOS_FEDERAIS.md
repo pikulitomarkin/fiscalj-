@@ -91,6 +91,9 @@ Documentação da estrutura correta do XML NFS-e no padrão ADN (Ambiente de Dis
         <tribFed>
           <!-- PIS e COFINS combinados em um único elemento -->
           <piscofins>
+            <!-- CST - Código de Situação Tributária (obrigatório) -->
+            <CST>01</CST>
+            
             <!-- PIS: 0.65% de R$ 89,00 = R$ 0,58 -->
             <vPIS>0.58</vPIS>
             
@@ -218,6 +221,7 @@ servico = Servico(
 ```xml
 <tribFed>
   <piscofins>
+    <CST>01</CST>
     <vPIS>6.50</vPIS>          <!-- 0.65% de 1000 -->
     <vCOFINS>30.00</vCOFINS>   <!-- 3.00% de 1000 -->
   </piscofins>
@@ -241,15 +245,16 @@ servico = Servico(
 ```
 
 **Resultado XML:**
-```piscofins>
+```xml
+<tribFed>
+  <piscofins>
+    <CST>01</CST>
     <vPIS>32.50</vPIS>         <!-- 0.65% de 5000 -->
     <vCOFINS>150.00</vCOFINS>  <!-- 3.00% de 5000 -->
   </piscofins>
   <vRetCP>550.00</vRetCP>      <!-- 11.00% de 5000 (INSS) -->
   <vRetIRRF>75.00</vRetIRRF>   <!-- 1.50% de 5000 (IR) -->
-  <vRetCSLL>50.00</vRetCSLL>   <!-- 11.00% de 5000 -->
-  <vRetIR>75.00</vRetIR>         <!-- 1.50% de 5000 -->
-  <vRetCSLL>50.00</vRetCSLL>     <!-- 1.00% de 5000 -->
+  <vRetCSLL>50.00</vRetCSLL>   <!-- 1.00% de 5000 -->
 </tribFed>
 <totTrib>
   <pTotTribSN>22.15</pTotTribSN> <!-- 5+0.65+3+11+1.5+1 -->
@@ -309,11 +314,14 @@ servico = Servico(
 | Elemento | Obrigatório | Descrição | Exemplo |
 |----------|-------------|-----------|---------|
 | `piscofins` | ❌ Não | Container para PIS e COFINS | - |
+| `piscofins/CST` | ✅ Sim* | Código Situação Tributária | `01` |
 | `piscofins/vPIS` | ❌ Não | Valor do PIS | `0.58` |
 | `piscofins/vCOFINS` | ❌ Não | Valor do COFINS | `2.67` |
 | `vRetCP` | ❌ Não | Contribuição Previdenciária (INSS) | `0.00` |
 | `vRetIRRF` | ❌ Não | Imposto de Renda Retido na Fonte | `0.00` |
 | `vRetCSLL` | ❌ Não | CSLL Retido | `0.00` |
+
+> **\*Nota**: CST é obrigatório quando o elemento `piscofins` está presente.
 
 > **Nota**: O elemento `tribFed` só é incluído se **pelo menos um** dos tributos federais for maior que zero.
 
