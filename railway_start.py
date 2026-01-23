@@ -3,29 +3,44 @@
 import os
 import subprocess
 import sys
+import shutil
+from pathlib import Path
 
 print("🚀 Iniciando NFS-e Automation System...")
 print(f"Python: {sys.version}")
 print(f"Working Directory: {os.getcwd()}")
-print(f"Build: v2.5 - Force cache clear")  # Versão para forçar rebuild
+print(f"Build: v2.6 - Inline cache clear")  # Versão para forçar rebuild
 
 # Get PORT from environment
 port = os.environ.get("PORT", "8501")
 print(f"PORT={port}")
 
-# NOVO: Limpar cache Python antes de tudo
+# LIMPAR CACHE PYTHON INLINE
 print("🧹 Limpando cache Python...")
 print("="*60)
-try:
-    result = subprocess.run([sys.executable, "clear_cache.py"], timeout=30)
-    print("="*60)
-    if result.returncode == 0:
-        print(f"✅ Cache Python limpo com sucesso")
-    else:
-        print(f"⚠️ Limpeza de cache retornou código {result.returncode}")
-except Exception as e:
-    print("="*60)
-    print(f"⚠️ Erro ao limpar cache: {e}")
+removed_count = 0
+base_dir = Path.cwd()
+
+# Remover arquivos .pyc
+for pyc_file in base_dir.rglob("*.pyc"):
+    try:
+        pyc_file.unlink()
+        removed_count += 1
+        print(f"  🗑️ {pyc_file.relative_to(base_dir)}")
+    except Exception as e:
+        print(f"  ⚠️ Erro: {e}")
+
+# Remover diretórios __pycache__
+for pycache_dir in base_dir.rglob("__pycache__"):
+    try:
+        shutil.rmtree(pycache_dir)
+        removed_count += 1
+        print(f"  🗑️ {pycache_dir.relative_to(base_dir)}/")
+    except Exception as e:
+        print(f"  ⚠️ Erro: {e}")
+
+print(f"✅ Cache limpo! {removed_count} itens removidos")
+print("="*60)
 print()
 
 # Run database migration (adicionar colunas xml_content e pdf_content)
