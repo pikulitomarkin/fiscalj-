@@ -276,6 +276,7 @@ class NFSeXMLGenerator:
             base_calculo = servico.valor_servico - (servico.valor_deducoes or 0)
             
             # piscofins - PIS + COFINS combinados em um único elemento
+            # Estrutura conforme XSD: vBCPisCofins, pAliqPis, pAliqCofins, vPis, vCofins, tpRetPisCofins
             has_pis_cofins = (
                 (servico.aliquota_pis and servico.aliquota_pis > 0) or
                 (servico.aliquota_cofins and servico.aliquota_cofins > 0)
@@ -283,19 +284,29 @@ class NFSeXMLGenerator:
             if has_pis_cofins:
                 piscofins_elem = SubElement(trib_fed_elem, "piscofins")
                 
-                # CST - Código de Situação Tributária (obrigatório)
-                # 01 = Operação Tributável com Alíquota Básica
-                SubElement(piscofins_elem, "CST").text = "01"
+                # vBCPisCofins - Base de Cálculo PIS/COFINS
+                SubElement(piscofins_elem, "vBCPisCofins").text = f"{base_calculo:.2f}"
                 
-                # vPIS - Valor do PIS
+                # pAliqPis - Percentual/Alíquota do PIS
+                if servico.aliquota_pis and servico.aliquota_pis > 0:
+                    SubElement(piscofins_elem, "pAliqPis").text = f"{servico.aliquota_pis:.4f}"
+                
+                # pAliqCofins - Percentual/Alíquota do COFINS
+                if servico.aliquota_cofins and servico.aliquota_cofins > 0:
+                    SubElement(piscofins_elem, "pAliqCofins").text = f"{servico.aliquota_cofins:.4f}"
+                
+                # vPis - Valor do PIS (minúsculo!)
                 if servico.aliquota_pis and servico.aliquota_pis > 0:
                     v_pis = base_calculo * (servico.aliquota_pis / 100)
-                    SubElement(piscofins_elem, "vPIS").text = f"{v_pis:.2f}"
+                    SubElement(piscofins_elem, "vPis").text = f"{v_pis:.2f}"
                 
-                # vCOFINS - Valor do COFINS
+                # vCofins - Valor do COFINS (apenas C maiúsculo!)
                 if servico.aliquota_cofins and servico.aliquota_cofins > 0:
                     v_cofins = base_calculo * (servico.aliquota_cofins / 100)
-                    SubElement(piscofins_elem, "vCOFINS").text = f"{v_cofins:.2f}"
+                    SubElement(piscofins_elem, "vCofins").text = f"{v_cofins:.2f}"
+                
+                # tpRetPisCofins - Tipo de Retenção PIS/COFINS (1 = Retido)
+                SubElement(piscofins_elem, "tpRetPisCofins").text = "1"
             
             # vRetCP - Contribuição Previdenciária (INSS)
             if servico.aliquota_inss and servico.aliquota_inss > 0:

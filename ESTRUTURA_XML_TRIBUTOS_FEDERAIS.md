@@ -17,8 +17,9 @@ Documentação da estrutura correta do XML NFS-e no padrão ADN (Ambiente de Dis
 
 | Tributo | Campo XML | Alíquota Padrão | Calculado |
 |---------|-----------|-----------------|-----------|
-| **PIS** | `piscofins/vPIS` | 0.65% | ✅ Sim |
-| **COFINS** | `piscofins/vCOFINS` | 3.00% | ✅ Sim |
+| **PIS** | `piscofins/vPis` | 0.65% | ✅ Sim |
+| **COFINS** | `piscofins/vCofins` | 3.00% | ✅ Sim |
+| **Base PIS/COFINS** | `piscofins/vBCPisCofins` | - | ✅ Sim |
 | **CP (INSS)** | `vRetCP` | 0.00% | ✅ Sim |
 | **IRRF** | `vRetIRRF` | 0.00% | ✅ Sim |
 | **CSLL** | `vRetCSLL` | 0.00% | ✅ Sim |
@@ -91,14 +92,23 @@ Documentação da estrutura correta do XML NFS-e no padrão ADN (Ambiente de Dis
         <tribFed>
           <!-- PIS e COFINS combinados em um único elemento -->
           <piscofins>
-            <!-- CST - Código de Situação Tributária (obrigatório) -->
-            <CST>01</CST>
+            <!-- Base de Cálculo PIS/COFINS -->
+            <vBCPisCofins>89.00</vBCPisCofins>
             
-            <!-- PIS: 0.65% de R$ 89,00 = R$ 0,58 -->
-            <vPIS>0.58</vPIS>
+            <!-- Alíquota PIS: 0.65% -->
+            <pAliqPis>0.6500</pAliqPis>
             
-            <!-- COFINS: 3.00% de R$ 89,00 = R$ 2,67 -->
-            <vCOFINS>2.67</vCOFINS>
+            <!-- Alíquota COFINS: 3.00% -->
+            <pAliqCofins>3.0000</pAliqCofins>
+            
+            <!-- Valor PIS: 0.65% de R$ 89,00 = R$ 0,58 -->
+            <vPis>0.58</vPis>
+            
+            <!-- Valor COFINS: 3.00% de R$ 89,00 = R$ 2,67 -->
+            <vCofins>2.67</vCofins>
+            
+            <!-- Tipo de Retenção PIS/COFINS: 1 = Retido -->
+            <tpRetPisCofins>1</tpRetPisCofins>
           </piscofins>
           
           <!-- CP (Contribuição Previdenciária/INSS): 0.00% (opcional) -->
@@ -221,9 +231,12 @@ servico = Servico(
 ```xml
 <tribFed>
   <piscofins>
-    <CST>01</CST>
-    <vPIS>6.50</vPIS>          <!-- 0.65% de 1000 -->
-    <vCOFINS>30.00</vCOFINS>   <!-- 3.00% de 1000 -->
+    <vBCPisCofins>1000.00</vBCPisCofins>
+    <pAliqPis>0.6500</pAliqPis>
+    <pAliqCofins>3.0000</pAliqCofins>
+    <vPis>6.50</vPis>          <!-- 0.65% de 1000 -->
+    <vCofins>30.00</vCofins>   <!-- 3.00% de 1000 -->
+    <tpRetPisCofins>1</tpRetPisCofins>
   </piscofins>
 </tribFed>
 ```
@@ -248,9 +261,12 @@ servico = Servico(
 ```xml
 <tribFed>
   <piscofins>
-    <CST>01</CST>
-    <vPIS>32.50</vPIS>         <!-- 0.65% de 5000 -->
-    <vCOFINS>150.00</vCOFINS>  <!-- 3.00% de 5000 -->
+    <vBCPisCofins>5000.00</vBCPisCofins>
+    <pAliqPis>0.6500</pAliqPis>
+    <pAliqCofins>3.0000</pAliqCofins>
+    <vPis>32.50</vPis>         <!-- 0.65% de 5000 -->
+    <vCofins>150.00</vCofins>  <!-- 3.00% de 5000 -->
+    <tpRetPisCofins>1</tpRetPisCofins>
   </piscofins>
   <vRetCP>550.00</vRetCP>      <!-- 11.00% de 5000 (INSS) -->
   <vRetIRRF>75.00</vRetIRRF>   <!-- 1.50% de 5000 (IR) -->
@@ -314,14 +330,17 @@ servico = Servico(
 | Elemento | Obrigatório | Descrição | Exemplo |
 |----------|-------------|-----------|---------|
 | `piscofins` | ❌ Não | Container para PIS e COFINS | - |
-| `piscofins/CST` | ✅ Sim* | Código Situação Tributária | `01` |
-| `piscofins/vPIS` | ❌ Não | Valor do PIS | `0.58` |
-| `piscofins/vCOFINS` | ❌ Não | Valor do COFINS | `2.67` |
+| `piscofins/vBCPisCofins` | ✅ Sim* | Base de Cálculo PIS/COFINS | `89.00` |
+| `piscofins/pAliqPis` | ❌ Não | Alíquota PIS (4 decimais) | `0.6500` |
+| `piscofins/pAliqCofins` | ❌ Não | Alíquota COFINS (4 decimais) | `3.0000` |
+| `piscofins/vPis` | ❌ Não | Valor do PIS | `0.58` |
+| `piscofins/vCofins` | ❌ Não | Valor do COFINS | `2.67` |
+| `piscofins/tpRetPisCofins` | ✅ Sim* | Tipo de Retenção (1=Retido) | `1` |
 | `vRetCP` | ❌ Não | Contribuição Previdenciária (INSS) | `0.00` |
 | `vRetIRRF` | ❌ Não | Imposto de Renda Retido na Fonte | `0.00` |
 | `vRetCSLL` | ❌ Não | CSLL Retido | `0.00` |
 
-> **\*Nota**: CST é obrigatório quando o elemento `piscofins` está presente.
+> **\*Nota**: Campos obrigatórios quando o elemento `piscofins` está presente.
 
 > **Nota**: O elemento `tribFed` só é incluído se **pelo menos um** dos tributos federais for maior que zero.
 
