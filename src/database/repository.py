@@ -1,9 +1,10 @@
 """
 Repositório de acesso a dados (Data Access Layer).
+Version: 2.4-delete-method
 """
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta, timezone
-from sqlalchemy import select, func, and_, desc
+from sqlalchemy import select, func, and_, desc, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 import uuid
 import json
@@ -16,6 +17,9 @@ from config.database import get_db_session
 
 class NFSeRepository:
     """Repositório para operações de NFS-e."""
+    
+    # Version check
+    _version = "2.4-delete-method"
     
     async def save_nfse(self, nfse_data: Dict[str, Any], usuario: str = "admin") -> int:
         """
@@ -402,8 +406,6 @@ class LogRepository:
         Returns:
             Número de registros removidos
         """
-        from sqlalchemy import delete
-        
         try:
             async with get_db_session() as session:
                 # Conta quantos registros existem ANTES

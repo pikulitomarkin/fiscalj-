@@ -53,6 +53,13 @@ PERSISTENCE_FILE = DATA_DIR / "nfse_emitidas.json"  # Backup local
 # Instância do repositório
 nfse_repository = NFSeRepository()
 
+# Verificar se o método delete_all_nfse existe
+if hasattr(nfse_repository, 'delete_all_nfse'):
+    app_logger.info(f"✅ NFSeRepository tem método delete_all_nfse - Versão: {getattr(nfse_repository, '_version', 'unknown')}")
+else:
+    app_logger.error("❌ NFSeRepository NÃO tem método delete_all_nfse!")
+    app_logger.info(f"Métodos disponíveis: {[m for m in dir(nfse_repository) if not m.startswith('_')]}")
+
 # Flag para controlar inicialização do banco
 _db_initialized = False
 
