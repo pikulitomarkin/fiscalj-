@@ -8,5 +8,9 @@
     "restartPolicyMaxRetries": 5,
     "healthcheckPath": "/",
     "healthcheckTimeout": 100
+  },
+  "variables": {
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONUNBUFFERED": "1"
   }
 }
