@@ -7,11 +7,26 @@ import sys
 print("🚀 Iniciando NFS-e Automation System...")
 print(f"Python: {sys.version}")
 print(f"Working Directory: {os.getcwd()}")
-print(f"Build: v2.4 - Tubarão/SC CNPJ 58645846000169 IM 93442")  # Versão para forçar rebuild
+print(f"Build: v2.5 - Force cache clear")  # Versão para forçar rebuild
 
 # Get PORT from environment
 port = os.environ.get("PORT", "8501")
 print(f"PORT={port}")
+
+# NOVO: Limpar cache Python antes de tudo
+print("🧹 Limpando cache Python...")
+print("="*60)
+try:
+    result = subprocess.run([sys.executable, "clear_cache.py"], timeout=30)
+    print("="*60)
+    if result.returncode == 0:
+        print(f"✅ Cache Python limpo com sucesso")
+    else:
+        print(f"⚠️ Limpeza de cache retornou código {result.returncode}")
+except Exception as e:
+    print("="*60)
+    print(f"⚠️ Erro ao limpar cache: {e}")
+print()
 
 # Run database migration (adicionar colunas xml_content e pdf_content)
 print("🔧 Executando migração do banco de dados...")
