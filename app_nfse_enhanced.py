@@ -63,6 +63,40 @@ else:
 # Flag para controlar inicialização do banco
 _db_initialized = False
 
+
+async def delete_all_nfse_direct() -> int:
+    """
+    Remove todas as NFS-e do banco de dados DIRETAMENTE.
+    Função standalone que não depende do cache do repositório.
+    """
+    from sqlalchemy import select, func, delete
+    from src.database.models import NFSeEmissao
+    from config.database import get_db_session
+    
+    try:
+        async with get_db_session() as session:
+            # Conta quantos registros existem ANTES
+            stmt_count = select(func.count()).select_from(NFSeEmissao)
+            result = await session.execute(stmt_count)
+            total = result.scalar()
+            
+            app_logger.info(f"Total de registros ANTES da deleção: {total}")
+            
+            if total > 0:
+                # Remove todos os registros
+                stmt_delete = delete(NFSeEmissao)
+                await session.execute(stmt_delete)
+                
+                app_logger.info(f"✅ Banco de dados limpo: {total} NFS-e removidas")
+                return total
+            else:
+                app_logger.info("Banco de dados já está vazio")
+                return 0
+    except Exception as e:
+        app_logger.error(f"Erro ao deletar NFS-e: {e}")
+        raise
+
+
 def ensure_db_initialized():
     """Garante que o banco de dados está inicializado."""
     global _db_initialized
@@ -1326,12 +1360,12 @@ def render_emitted_nfse_list():
                             app_logger.error(erro_msg)
                             erros.append(erro_msg)
                     
-                    # Limpar banco de dados PostgreSQL
+                    # Limpar banco de dados PostgreSQL (usando função direta)
                     db_removidos = 0
                     try:
-                        app_logger.info("Iniciando limpeza do banco de dados PostgreSQL...")
+                        app_logger.info("Iniciando limpeza do banco de dados PostgreSQL (função direta)...")
                         ensure_db_initialized()
-                        db_removidos = asyncio.run(nfse_repository.delete_all_nfse())
+                        db_removidos = asyncio.run(delete_all_nfse_direct())
                         app_logger.info(f"✅ Banco de dados limpo com sucesso: {db_removidos} registros removidos")
                     except Exception as e:
                         erro_msg = f"Erro ao limpar banco de dados: {e}"
@@ -1619,12 +1653,12 @@ def render_settings():
                     total_notas = len(st.session_state.emitted_nfse)
                     erros = []
                     
-                    # Limpar banco de dados PostgreSQL
+                    # Limpar banco de dados PostgreSQL (usando função direta)
                     db_removidos = 0
                     try:
-                        app_logger.info("Iniciando limpeza do banco de dados PostgreSQL...")
+                        app_logger.info("Iniciando limpeza do banco de dados PostgreSQL (função direta)...")
                         ensure_db_initialized()
-                        db_removidos = asyncio.run(nfse_repository.delete_all_nfse())
+                        db_removidos = asyncio.run(delete_all_nfse_direct())
                         app_logger.info(f"✅ Banco de dados limpo com sucesso: {db_removidos} registros removidos")
                     except Exception as e:
                         erro_msg = f"Erro ao limpar banco de dados: {e}"
