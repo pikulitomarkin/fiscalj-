@@ -1298,6 +1298,7 @@ def render_emitted_nfse_list():
                 if st.button("✅ Confirmar Limpeza", type="primary", use_container_width=True, key="confirm_clear"):
                     total_notas = len(st.session_state.emitted_nfse)
                     arquivos_removidos = 0
+                    erros = []
                     
                     # Remover arquivos físicos (XML e PDF)
                     for nota in st.session_state.emitted_nfse:
@@ -1314,24 +1315,42 @@ def render_emitted_nfse_list():
                                 Path(pdf_path).unlink()
                                 arquivos_removidos += 1
                         except Exception as e:
-                            app_logger.error(f"Erro ao remover arquivos: {e}")
+                            erro_msg = f"Erro ao remover arquivos: {e}"
+                            app_logger.error(erro_msg)
+                            erros.append(erro_msg)
                     
                     # Limpar banco de dados PostgreSQL
+                    db_removidos = 0
                     try:
+                        ensure_db_initialized()
                         db_removidos = asyncio.run(nfse_repository.delete_all_nfse())
                         app_logger.info(f"Banco de dados limpo: {db_removidos} registros removidos")
                     except Exception as e:
-                        app_logger.error(f"Erro ao limpar banco de dados: {e}")
+                        erro_msg = f"Erro ao limpar banco de dados: {e}"
+                        app_logger.error(erro_msg)
+                        erros.append(erro_msg)
                     
                     # Limpar dados da sessão
                     st.session_state.emitted_nfse = []
                     st.session_state.last_emission = None
                     st.session_state.confirmar_limpeza = False
                     
-                    # Salvar arquivo vazio
-                    save_emitted_nfse()
+                    # Salvar arquivo JSON vazio
+                    try:
+                        PERSISTENCE_FILE.parent.mkdir(parents=True, exist_ok=True)
+                        with open(PERSISTENCE_FILE, 'w', encoding='utf-8') as f:
+                            json.dump([], f, ensure_ascii=False, indent=2)
+                        app_logger.info("Arquivo de backup JSON limpo")
+                    except Exception as e:
+                        erro_msg = f"Erro ao limpar arquivo JSON: {e}"
+                        app_logger.error(erro_msg)
+                        erros.append(erro_msg)
                     
-                    st.success(f"✅ Histórico limpo! {total_notas} nota(s) e {arquivos_removidos} arquivo(s) removidos.")
+                    # Exibir resultados
+                    if erros:
+                        st.warning(f"⚠️ Limpeza parcial: {total_notas} nota(s), {arquivos_removidos} arquivo(s) e {db_removidos} registro(s) do banco removidos. Erros: {'; '.join(erros)}")
+                    else:
+                        st.success(f"✅ Histórico limpo! {total_notas} nota(s), {arquivos_removidos} arquivo(s) e {db_removidos} registro(s) do banco removidos.")
                     st.rerun()
             
             with col_cancel:
@@ -1578,20 +1597,40 @@ def render_settings():
             with col_confirm:
                 if st.button("✅ Confirmar", type="primary", use_container_width=True, key="confirm_clear_settings"):
                     total_notas = len(st.session_state.emitted_nfse)
+                    erros = []
                     
                     # Limpar banco de dados PostgreSQL
+                    db_removidos = 0
                     try:
+                        ensure_db_initialized()
                         db_removidos = asyncio.run(nfse_repository.delete_all_nfse())
                         app_logger.info(f"Banco de dados limpo: {db_removidos} registros removidos")
                     except Exception as e:
-                        app_logger.error(f"Erro ao limpar banco de dados: {e}")
+                        erro_msg = f"Erro ao limpar banco de dados: {e}"
+                        app_logger.error(erro_msg)
+                        erros.append(erro_msg)
                     
+                    # Limpar dados da sessão
                     st.session_state.emitted_nfse = []
                     st.session_state.last_emission = None
                     st.session_state.confirmar_limpeza_settings = False
-                    # Salvar arquivo vazio
-                    save_emitted_nfse()
-                    st.success(f"✅ Histórico limpo! {total_notas} nota(s) removida(s).")
+                    
+                    # Salvar arquivo JSON vazio
+                    try:
+                        PERSISTENCE_FILE.parent.mkdir(parents=True, exist_ok=True)
+                        with open(PERSISTENCE_FILE, 'w', encoding='utf-8') as f:
+                            json.dump([], f, ensure_ascii=False, indent=2)
+                        app_logger.info("Arquivo de backup JSON limpo")
+                    except Exception as e:
+                        erro_msg = f"Erro ao limpar arquivo JSON: {e}"
+                        app_logger.error(erro_msg)
+                        erros.append(erro_msg)
+                    
+                    # Exibir resultados
+                    if erros:
+                        st.warning(f"⚠️ Limpeza parcial: {total_notas} nota(s) e {db_removidos} registro(s) do banco removidos. Erros: {'; '.join(erros)}")
+                    else:
+                        st.success(f"✅ Histórico limpo! {total_notas} nota(s) e {db_removidos} registro(s) do banco removidos.")
                     st.rerun()
             
             with col_cancel:

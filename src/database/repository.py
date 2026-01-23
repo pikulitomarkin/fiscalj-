@@ -404,20 +404,24 @@ class LogRepository:
         """
         from sqlalchemy import delete
         
-        async with get_db_session() as session:
-            # Conta quantos registros existem
-            stmt_count = select(func.count()).select_from(NFSeEmissao)
-            result = await session.execute(stmt_count)
-            total = result.scalar()
-            
-            if total > 0:
-                # Remove todos os registros
-                stmt_delete = delete(NFSeEmissao)
-                await session.execute(stmt_delete)
-                await session.commit()
+        try:
+            async with get_db_session() as session:
+                # Conta quantos registros existem
+                stmt_count = select(func.count()).select_from(NFSeEmissao)
+                result = await session.execute(stmt_count)
+                total = result.scalar()
                 
-                app_logger.info(f"Banco de dados limpo: {total} NFS-e removidas")
-                return total
-            else:
-                app_logger.info("Banco de dados já está vazio")
-                return 0
+                if total > 0:
+                    # Remove todos os registros
+                    stmt_delete = delete(NFSeEmissao)
+                    await session.execute(stmt_delete)
+                    # O commit é feito automaticamente pelo context manager
+                    
+                    app_logger.info(f"Banco de dados limpo: {total} NFS-e removidas")
+                    return total
+                else:
+                    app_logger.info("Banco de dados já está vazio")
+                    return 0
+        except Exception as e:
+            app_logger.error(f"Erro ao deletar NFS-e do banco: {e}")
+            raise
