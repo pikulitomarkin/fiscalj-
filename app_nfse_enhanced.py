@@ -364,7 +364,7 @@ def render_single_emission():
                 "Alíquota ISS (%) *",
                 min_value=0.0,
                 max_value=5.0,
-                value=2.0,
+                value=3.0,
                 step=0.1,
                 format="%.2f"
             )
@@ -625,7 +625,7 @@ def render_batch_emission():
                                 "Alíquota ISS (%) *",
                                 min_value=0.0,
                                 max_value=5.0,
-                                value=2.0,
+                                value=3.0,
                                 step=0.1,
                                 format="%.2f"
                             )
