@@ -1316,6 +1316,13 @@ def render_emitted_nfse_list():
                         except Exception as e:
                             app_logger.error(f"Erro ao remover arquivos: {e}")
                     
+                    # Limpar banco de dados PostgreSQL
+                    try:
+                        db_removidos = asyncio.run(nfse_repository.delete_all_nfse())
+                        app_logger.info(f"Banco de dados limpo: {db_removidos} registros removidos")
+                    except Exception as e:
+                        app_logger.error(f"Erro ao limpar banco de dados: {e}")
+                    
                     # Limpar dados da sessão
                     st.session_state.emitted_nfse = []
                     st.session_state.last_emission = None
@@ -1571,6 +1578,14 @@ def render_settings():
             with col_confirm:
                 if st.button("✅ Confirmar", type="primary", use_container_width=True, key="confirm_clear_settings"):
                     total_notas = len(st.session_state.emitted_nfse)
+                    
+                    # Limpar banco de dados PostgreSQL
+                    try:
+                        db_removidos = asyncio.run(nfse_repository.delete_all_nfse())
+                        app_logger.info(f"Banco de dados limpo: {db_removidos} registros removidos")
+                    except Exception as e:
+                        app_logger.error(f"Erro ao limpar banco de dados: {e}")
+                    
                     st.session_state.emitted_nfse = []
                     st.session_state.last_emission = None
                     st.session_state.confirmar_limpeza_settings = False

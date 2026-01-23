@@ -394,3 +394,30 @@ class LogRepository:
                     log.duracao_segundos = int(duracao)
                 
                 app_logger.info(f"Log atualizado: {batch_id} - {sucessos}/{erros}")
+    
+    async def delete_all_nfse(self) -> int:
+        """
+        Remove todas as NFS-e do banco de dados.
+        
+        Returns:
+            Número de registros removidos
+        """
+        from sqlalchemy import delete
+        
+        async with get_db_session() as session:
+            # Conta quantos registros existem
+            stmt_count = select(func.count()).select_from(NFSeEmissao)
+            result = await session.execute(stmt_count)
+            total = result.scalar()
+            
+            if total > 0:
+                # Remove todos os registros
+                stmt_delete = delete(NFSeEmissao)
+                await session.execute(stmt_delete)
+                await session.commit()
+                
+                app_logger.info(f"Banco de dados limpo: {total} NFS-e removidas")
+                return total
+            else:
+                app_logger.info("Banco de dados já está vazio")
+                return 0
