@@ -259,12 +259,65 @@ class NFSeXMLGenerator:
         # Valores possíveis: provavelmente código de tipo de retenção
         SubElement(trib_mun_elem, "tpRetISSQN").text = "1"
         
-        # totTrib - Total de Tributos (obrigatório em trib após tribMun)
+        # tribFed - Tributos Federais (PIS, COFINS, INSS, IR, CSLL)
+        # Adicionar somente se houver valores configurados
+        has_federal_tax = (
+            (servico.aliquota_pis and servico.aliquota_pis > 0) or
+            (servico.aliquota_cofins and servico.aliquota_cofins > 0) or
+            (servico.aliquota_inss and servico.aliquota_inss > 0) or
+            (servico.aliquota_ir and servico.aliquota_ir > 0) or
+            (servico.aliquota_csll and servico.aliquota_csll > 0)
+        )
+        
+        if has_federal_tax:
+            trib_fed_elem = SubElement(trib_elem, "tribFed")
+            
+            # Calcular valores de retenção baseados nas alíquotas
+            base_calculo = servico.valor_servico - (servico.valor_deducoes or 0)
+            
+            # PIS - Programa de Integração Social
+            if servico.aliquota_pis and servico.aliquota_pis > 0:
+                v_ret_pis = base_calculo * (servico.aliquota_pis / 100)
+                SubElement(trib_fed_elem, "vRetPIS").text = f"{v_ret_pis:.2f}"
+            
+            # COFINS - Contribuição para Financiamento da Seguridade Social
+            if servico.aliquota_cofins and servico.aliquota_cofins > 0:
+                v_ret_cofins = base_calculo * (servico.aliquota_cofins / 100)
+                SubElement(trib_fed_elem, "vRetCOFINS").text = f"{v_ret_cofins:.2f}"
+            
+            # INSS - Instituto Nacional do Seguro Social
+            if servico.aliquota_inss and servico.aliquota_inss > 0:
+                v_ret_inss = base_calculo * (servico.aliquota_inss / 100)
+                SubElement(trib_fed_elem, "vRetINSS").text = f"{v_ret_inss:.2f}"
+            
+            # IR - Imposto de Renda
+            if servico.aliquota_ir and servico.aliquota_ir > 0:
+                v_ret_ir = base_calculo * (servico.aliquota_ir / 100)
+                SubElement(trib_fed_elem, "vRetIR").text = f"{v_ret_ir:.2f}"
+            
+            # CSLL - Contribuição Social sobre o Lucro Líquido
+            if servico.aliquota_csll and servico.aliquota_csll > 0:
+                v_ret_csll = base_calculo * (servico.aliquota_csll / 100)
+                SubElement(trib_fed_elem, "vRetCSLL").text = f"{v_ret_csll:.2f}"
+        
+        # totTrib - Total de Tributos (obrigatório em trib após tribMun e tribFed)
         tot_trib_elem = SubElement(trib_elem, "totTrib")
         
         # pTotTribSN - Percentual Total de Tributos Simples Nacional
-        # Usa a alíquota de ISS como percentual
-        SubElement(tot_trib_elem, "pTotTribSN").text = f"{servico.aliquota_iss:.2f}"
+        # Calcular percentual total incluindo tributos federais
+        percentual_total = float(servico.aliquota_iss or 0)
+        if servico.aliquota_pis:
+            percentual_total += float(servico.aliquota_pis)
+        if servico.aliquota_cofins:
+            percentual_total += float(servico.aliquota_cofins)
+        if servico.aliquota_inss:
+            percentual_total += float(servico.aliquota_inss)
+        if servico.aliquota_ir:
+            percentual_total += float(servico.aliquota_ir)
+        if servico.aliquota_csll:
+            percentual_total += float(servico.aliquota_csll)
+        
+        SubElement(tot_trib_elem, "pTotTribSN").text = f"{percentual_total:.2f}"
     
     def _add_prestador(self, parent: Element, prestador: PrestadorServico):
         """Adiciona dados do prestador ao XML (formato antigo - DEPRECATED)."""
