@@ -3,7 +3,6 @@ Repositório de acesso a dados (Data Access Layer).
 """
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta, timezone
-import pytz
 from sqlalchemy import select, func, and_, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 import uuid
@@ -60,9 +59,9 @@ class NFSeRepository:
                 except Exception as e:
                     app_logger.warning(f"Erro ao ler PDF: {e}")
             
-            # Usar timezone Brasil
-            tz_br = pytz.timezone('America/Sao_Paulo')
-            agora_br = datetime.now(tz_br)
+            # Usar datetime naive (sem timezone) para compatibilidade com PostgreSQL TIMESTAMP WITHOUT TIME ZONE
+            # O PostgreSQL converterá para o timezone do servidor automaticamente
+            agora = datetime.now()
             
             emissao = NFSeEmissao(
                 chave_acesso=nfse_data.get('chave_acesso'),
@@ -77,8 +76,8 @@ class NFSeRepository:
                 xml_content=xml_content,
                 pdf_content=pdf_content,
                 resultado_json=json.dumps(nfse_data.get('resultado_completo', {}), default=str),
-                data_emissao=agora_br,
-                data_processamento=agora_br,
+                data_emissao=agora,
+                data_processamento=agora,
                 usuario=usuario
             )
             
