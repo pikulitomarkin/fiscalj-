@@ -17,10 +17,10 @@ Documentação da estrutura correta do XML NFS-e no padrão ADN (Ambiente de Dis
 
 | Tributo | Campo XML | Alíquota Padrão | Calculado |
 |---------|-----------|-----------------|-----------|
-| **PIS** | `vRetPIS` | 0.65% | ✅ Sim |
-| **COFINS** | `vRetCOFINS` | 3.00% | ✅ Sim |
-| **INSS** | `vRetINSS` | 0.00% | ✅ Sim |
-| **IR** | `vRetIR` | 0.00% | ✅ Sim |
+| **PIS** | `piscofins/vPIS` | 0.65% | ✅ Sim |
+| **COFINS** | `piscofins/vCOFINS` | 3.00% | ✅ Sim |
+| **CP (INSS)** | `vRetCP` | 0.00% | ✅ Sim |
+| **IRRF** | `vRetIRRF` | 0.00% | ✅ Sim |
 | **CSLL** | `vRetCSLL` | 0.00% | ✅ Sim |
 | **ISS** | `tribISSQN` | 3.00% | ✅ Sim |
 
@@ -89,17 +89,20 @@ Documentação da estrutura correta do XML NFS-e no padrão ADN (Ambiente de Dis
         
         <!-- ⭐ TRIBUTOS FEDERAIS (NOVO) ⭐ -->
         <tribFed>
-          <!-- PIS: 0.65% de R$ 89,00 = R$ 0,58 -->
-          <vRetPIS>0.58</vRetPIS>
+          <!-- PIS e COFINS combinados em um único elemento -->
+          <piscofins>
+            <!-- PIS: 0.65% de R$ 89,00 = R$ 0,58 -->
+            <vPIS>0.58</vPIS>
+            
+            <!-- COFINS: 3.00% de R$ 89,00 = R$ 2,67 -->
+            <vCOFINS>2.67</vCOFINS>
+          </piscofins>
           
-          <!-- COFINS: 3.00% de R$ 89,00 = R$ 2,67 -->
-          <vRetCOFINS>2.67</vRetCOFINS>
+          <!-- CP (Contribuição Previdenciária/INSS): 0.00% (opcional) -->
+          <vRetCP>0.00</vRetCP>
           
-          <!-- INSS: 0.00% (opcional) -->
-          <vRetINSS>0.00</vRetINSS>
-          
-          <!-- IR: 0.00% (opcional) -->
-          <vRetIR>0.00</vRetIR>
+          <!-- IRRF (Imposto de Renda Retido na Fonte): 0.00% (opcional) -->
+          <vRetIRRF>0.00</vRetIRRF>
           
           <!-- CSLL: 0.00% (opcional) -->
           <vRetCSLL>0.00</vRetCSLL>
@@ -214,8 +217,10 @@ servico = Servico(
 **Resultado XML:**
 ```xml
 <tribFed>
-  <vRetPIS>6.50</vRetPIS>      <!-- 0.65% de 1000 -->
-  <vRetCOFINS>30.00</vRetCOFINS> <!-- 3.00% de 1000 -->
+  <piscofins>
+    <vPIS>6.50</vPIS>          <!-- 0.65% de 1000 -->
+    <vCOFINS>30.00</vCOFINS>   <!-- 3.00% de 1000 -->
+  </piscofins>
 </tribFed>
 ```
 
@@ -236,11 +241,13 @@ servico = Servico(
 ```
 
 **Resultado XML:**
-```xml
-<tribFed>
-  <vRetPIS>32.50</vRetPIS>      <!-- 0.65% de 5000 -->
-  <vRetCOFINS>150.00</vRetCOFINS> <!-- 3.00% de 5000 -->
-  <vRetINSS>550.00</vRetINSS>    <!-- 11.00% de 5000 -->
+```piscofins>
+    <vPIS>32.50</vPIS>         <!-- 0.65% de 5000 -->
+    <vCOFINS>150.00</vCOFINS>  <!-- 3.00% de 5000 -->
+  </piscofins>
+  <vRetCP>550.00</vRetCP>      <!-- 11.00% de 5000 (INSS) -->
+  <vRetIRRF>75.00</vRetIRRF>   <!-- 1.50% de 5000 (IR) -->
+  <vRetCSLL>50.00</vRetCSLL>   <!-- 11.00% de 5000 -->
   <vRetIR>75.00</vRetIR>         <!-- 1.50% de 5000 -->
   <vRetCSLL>50.00</vRetCSLL>     <!-- 1.00% de 5000 -->
 </tribFed>
@@ -301,11 +308,12 @@ servico = Servico(
 
 | Elemento | Obrigatório | Descrição | Exemplo |
 |----------|-------------|-----------|---------|
-| `vRetPIS` | ❌ Não | Valor retido de PIS | `0.58` |
-| `vRetCOFINS` | ❌ Não | Valor retido de COFINS | `2.67` |
-| `vRetINSS` | ❌ Não | Valor retido de INSS | `0.00` |
-| `vRetIR` | ❌ Não | Valor retido de IR | `0.00` |
-| `vRetCSLL` | ❌ Não | Valor retido de CSLL | `0.00` |
+| `piscofins` | ❌ Não | Container para PIS e COFINS | - |
+| `piscofins/vPIS` | ❌ Não | Valor do PIS | `0.58` |
+| `piscofins/vCOFINS` | ❌ Não | Valor do COFINS | `2.67` |
+| `vRetCP` | ❌ Não | Contribuição Previdenciária (INSS) | `0.00` |
+| `vRetIRRF` | ❌ Não | Imposto de Renda Retido na Fonte | `0.00` |
+| `vRetCSLL` | ❌ Não | CSLL Retido | `0.00` |
 
 > **Nota**: O elemento `tribFed` só é incluído se **pelo menos um** dos tributos federais for maior que zero.
 

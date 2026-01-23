@@ -259,8 +259,8 @@ class NFSeXMLGenerator:
         # Valores possíveis: provavelmente código de tipo de retenção
         SubElement(trib_mun_elem, "tpRetISSQN").text = "1"
         
-        # tribFed - Tributos Federais (PIS, COFINS, INSS, IR, CSLL)
-        # Adicionar somente se houver valores configurados
+        # tribFed - Tributos Federais
+        # Estrutura conforme XSD: piscofins, vRetCP, vRetIRRF, vRetCSLL
         has_federal_tax = (
             (servico.aliquota_pis and servico.aliquota_pis > 0) or
             (servico.aliquota_cofins and servico.aliquota_cofins > 0) or
@@ -275,27 +275,35 @@ class NFSeXMLGenerator:
             # Calcular valores de retenção baseados nas alíquotas
             base_calculo = servico.valor_servico - (servico.valor_deducoes or 0)
             
-            # PIS - Programa de Integração Social
-            if servico.aliquota_pis and servico.aliquota_pis > 0:
-                v_ret_pis = base_calculo * (servico.aliquota_pis / 100)
-                SubElement(trib_fed_elem, "vRetPIS").text = f"{v_ret_pis:.2f}"
+            # piscofins - PIS + COFINS combinados em um único elemento
+            has_pis_cofins = (
+                (servico.aliquota_pis and servico.aliquota_pis > 0) or
+                (servico.aliquota_cofins and servico.aliquota_cofins > 0)
+            )
+            if has_pis_cofins:
+                piscofins_elem = SubElement(trib_fed_elem, "piscofins")
+                
+                # vPIS - Valor do PIS
+                if servico.aliquota_pis and servico.aliquota_pis > 0:
+                    v_pis = base_calculo * (servico.aliquota_pis / 100)
+                    SubElement(piscofins_elem, "vPIS").text = f"{v_pis:.2f}"
+                
+                # vCOFINS - Valor do COFINS
+                if servico.aliquota_cofins and servico.aliquota_cofins > 0:
+                    v_cofins = base_calculo * (servico.aliquota_cofins / 100)
+                    SubElement(piscofins_elem, "vCOFINS").text = f"{v_cofins:.2f}"
             
-            # COFINS - Contribuição para Financiamento da Seguridade Social
-            if servico.aliquota_cofins and servico.aliquota_cofins > 0:
-                v_ret_cofins = base_calculo * (servico.aliquota_cofins / 100)
-                SubElement(trib_fed_elem, "vRetCOFINS").text = f"{v_ret_cofins:.2f}"
-            
-            # INSS - Instituto Nacional do Seguro Social
+            # vRetCP - Contribuição Previdenciária (INSS)
             if servico.aliquota_inss and servico.aliquota_inss > 0:
-                v_ret_inss = base_calculo * (servico.aliquota_inss / 100)
-                SubElement(trib_fed_elem, "vRetINSS").text = f"{v_ret_inss:.2f}"
+                v_ret_cp = base_calculo * (servico.aliquota_inss / 100)
+                SubElement(trib_fed_elem, "vRetCP").text = f"{v_ret_cp:.2f}"
             
-            # IR - Imposto de Renda
+            # vRetIRRF - Imposto de Renda Retido na Fonte
             if servico.aliquota_ir and servico.aliquota_ir > 0:
-                v_ret_ir = base_calculo * (servico.aliquota_ir / 100)
-                SubElement(trib_fed_elem, "vRetIR").text = f"{v_ret_ir:.2f}"
+                v_ret_irrf = base_calculo * (servico.aliquota_ir / 100)
+                SubElement(trib_fed_elem, "vRetIRRF").text = f"{v_ret_irrf:.2f}"
             
-            # CSLL - Contribuição Social sobre o Lucro Líquido
+            # vRetCSLL - CSLL Retido
             if servico.aliquota_csll and servico.aliquota_csll > 0:
                 v_ret_csll = base_calculo * (servico.aliquota_csll / 100)
                 SubElement(trib_fed_elem, "vRetCSLL").text = f"{v_ret_csll:.2f}"
