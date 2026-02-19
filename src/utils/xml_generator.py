@@ -330,9 +330,10 @@ class NFSeXMLGenerator:
                 v_ret_csll = base_calculo * (servico.aliquota_csll / 100)
                 SubElement(trib_fed_elem, "vRetCSLL").text = f"{v_ret_csll:.2f}"
         
-        # totTrib - apenas para optantes do Simples Nacional (E0713: não-optantes não podem informar)
+        # totTrib - obrigatório pelo schema XSD
+        tot_trib_elem = SubElement(trib_elem, "totTrib")
         if optante_simples_nacional:
-            tot_trib_elem = SubElement(trib_elem, "totTrib")
+            # pTotTribSN - percentual total Simples Nacional (apenas para optantes, E0713)
             percentual_total = float(servico.aliquota_iss or 0)
             if servico.aliquota_pis:
                 percentual_total += float(servico.aliquota_pis)
@@ -345,6 +346,9 @@ class NFSeXMLGenerator:
             if servico.aliquota_csll:
                 percentual_total += float(servico.aliquota_csll)
             SubElement(tot_trib_elem, "pTotTribSN").text = f"{percentual_total:.2f}"
+        else:
+            # indTotTrib=0 indica que não serão informados valores estimados de tributos (Decreto 8.264/2014)
+            SubElement(tot_trib_elem, "indTotTrib").text = "0"
     
     def _add_prestador(self, parent: Element, prestador: PrestadorServico):
         """Adiciona dados do prestador ao XML (formato antigo - DEPRECATED)."""
