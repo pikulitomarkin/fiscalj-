@@ -141,7 +141,7 @@ class NFSeXMLGenerator:
         
         # 12. valores - Valores e tributos
         valores_elem = SubElement(inf_dps, "valores")
-        self._add_valores_v101(valores_elem, nfse_request.servico)
+        self._add_valores_v101(valores_elem, nfse_request.servico, nfse_request.optante_simples_nacional)
         
         # Convertendo para string XML
         xml_string = tostring(root, encoding="unicode", method="xml")
@@ -229,7 +229,7 @@ class NFSeXMLGenerator:
         # 4. xDescServ - Descrição do Serviço (dentro de cServ)
         SubElement(c_serv_elem, "xDescServ").text = servico.descricao
     
-    def _add_valores_v101(self, parent: Element, servico: Servico):
+    def _add_valores_v101(self, parent: Element, servico: Servico, optante_simples_nacional: bool = False):
         """Adiciona valores conforme XSD v1.01."""
         
         # 1. vServPrest - Elemento container para valores do serviço
@@ -330,24 +330,21 @@ class NFSeXMLGenerator:
                 v_ret_csll = base_calculo * (servico.aliquota_csll / 100)
                 SubElement(trib_fed_elem, "vRetCSLL").text = f"{v_ret_csll:.2f}"
         
-        # totTrib - Total de Tributos (obrigatório em trib após tribMun e tribFed)
-        tot_trib_elem = SubElement(trib_elem, "totTrib")
-        
-        # pTotTribSN - Percentual Total de Tributos Simples Nacional
-        # Calcular percentual total incluindo tributos federais
-        percentual_total = float(servico.aliquota_iss or 0)
-        if servico.aliquota_pis:
-            percentual_total += float(servico.aliquota_pis)
-        if servico.aliquota_cofins:
-            percentual_total += float(servico.aliquota_cofins)
-        if servico.aliquota_inss:
-            percentual_total += float(servico.aliquota_inss)
-        if servico.aliquota_ir:
-            percentual_total += float(servico.aliquota_ir)
-        if servico.aliquota_csll:
-            percentual_total += float(servico.aliquota_csll)
-        
-        SubElement(tot_trib_elem, "pTotTribSN").text = f"{percentual_total:.2f}"
+        # totTrib - apenas para optantes do Simples Nacional (E0713: não-optantes não podem informar)
+        if optante_simples_nacional:
+            tot_trib_elem = SubElement(trib_elem, "totTrib")
+            percentual_total = float(servico.aliquota_iss or 0)
+            if servico.aliquota_pis:
+                percentual_total += float(servico.aliquota_pis)
+            if servico.aliquota_cofins:
+                percentual_total += float(servico.aliquota_cofins)
+            if servico.aliquota_inss:
+                percentual_total += float(servico.aliquota_inss)
+            if servico.aliquota_ir:
+                percentual_total += float(servico.aliquota_ir)
+            if servico.aliquota_csll:
+                percentual_total += float(servico.aliquota_csll)
+            SubElement(tot_trib_elem, "pTotTribSN").text = f"{percentual_total:.2f}"
     
     def _add_prestador(self, parent: Element, prestador: PrestadorServico):
         """Adiciona dados do prestador ao XML (formato antigo - DEPRECATED)."""
