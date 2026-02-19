@@ -269,11 +269,11 @@ class NFSeXMLGenerator:
             (servico.aliquota_csll and servico.aliquota_csll > 0)
         )
         
+        # base_calculo usada tanto em tribFed quanto em totTrib
+        base_calculo = servico.valor_servico - (servico.valor_deducoes or 0)
+
         if has_federal_tax:
             trib_fed_elem = SubElement(trib_elem, "tribFed")
-            
-            # Calcular valores de retenção baseados nas alíquotas
-            base_calculo = servico.valor_servico - (servico.valor_deducoes or 0)
             
             # piscofins - PIS + COFINS combinados em um único elemento
             # Ordem conforme XSD: CST, vBCPisCofins, pAliqPis, pAliqCofins, vPis, vCofins, tpRetPisCofins
@@ -347,8 +347,23 @@ class NFSeXMLGenerator:
                 percentual_total += float(servico.aliquota_csll)
             SubElement(tot_trib_elem, "pTotTribSN").text = f"{percentual_total:.2f}"
         else:
-            # indTotTrib=0 indica que não serão informados valores estimados de tributos (Decreto 8.264/2014)
-            SubElement(tot_trib_elem, "indTotTrib").text = "0"
+            # vTotTrib - valor monetário total para não-optantes (E0713 proíbe indTotTrib e pTotTribSN)
+            v_tot_trib_elem = SubElement(tot_trib_elem, "vTotTrib")
+            # Tributos federais: PIS + COFINS + INSS + IR + CSLL
+            v_fed = base_calculo * (
+                (servico.aliquota_pis or 0) +
+                (servico.aliquota_cofins or 0) +
+                (servico.aliquota_inss or 0) +
+                (servico.aliquota_ir or 0) +
+                (servico.aliquota_csll or 0)
+            ) / 100
+            # Tributos estaduais: não aplicáveis a serviços (ISS é municipal)
+            v_est = 0
+            # Tributos municipais: ISS
+            v_mun = base_calculo * (servico.aliquota_iss or 0) / 100
+            SubElement(v_tot_trib_elem, "vTotTribFed").text = f"{v_fed:.2f}"
+            SubElement(v_tot_trib_elem, "vTotTribEst").text = f"{v_est:.2f}"
+            SubElement(v_tot_trib_elem, "vTotTribMun").text = f"{v_mun:.2f}"
     
     def _add_prestador(self, parent: Element, prestador: PrestadorServico):
         """Adiciona dados do prestador ao XML (formato antigo - DEPRECATED)."""
