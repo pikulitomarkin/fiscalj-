@@ -3,7 +3,6 @@ Gerador de XMLs NFS-e no padrão ADN (Ambiente de Disponibilização Nacional).
 """
 import gzip
 import base64
-from decimal import Decimal
 from xml.etree.ElementTree import Element, SubElement, tostring
 from datetime import datetime
 from typing import Dict, Any, Optional
@@ -310,8 +309,11 @@ class NFSeXMLGenerator:
                     v_cofins = base_calculo * (servico.aliquota_cofins / 100)
                     SubElement(piscofins_elem, "vCofins").text = f"{v_cofins:.2f}"
                 
-                # tpRetPisCofins - Tipo de Retenção PIS/COFINS (1 = Retido)
-                SubElement(piscofins_elem, "tpRetPisCofins").text = "1"
+                # tpRetPisCofins - "1" (Retido) apenas quando há CSLL; caso contrário "2" (Não Retido)
+                # E0724: vRetCSLL é obrigatório quando tpRetPisCofins="1"
+                # E0701: vRetCSLL deve ser maior que zero quando informado
+                has_csll = servico.aliquota_csll and servico.aliquota_csll > 0
+                SubElement(piscofins_elem, "tpRetPisCofins").text = "1" if has_csll else "2"
             
             # vRetCP - Contribuição Previdenciária (INSS)
             if servico.aliquota_inss and servico.aliquota_inss > 0:
@@ -323,9 +325,10 @@ class NFSeXMLGenerator:
                 v_ret_irrf = base_calculo * (servico.aliquota_ir / 100)
                 SubElement(trib_fed_elem, "vRetIRRF").text = f"{v_ret_irrf:.2f}"
             
-            # vRetCSLL - CSLL Retido (obrigatório quando tpRetPisCofins != "0", erro E0724)
-            v_ret_csll = base_calculo * (servico.aliquota_csll / 100) if servico.aliquota_csll and servico.aliquota_csll > 0 else Decimal("0")
-            SubElement(trib_fed_elem, "vRetCSLL").text = f"{v_ret_csll:.2f}"
+            # vRetCSLL - apenas quando há alíquota de CSLL (> 0), pois E0701 exige valor > 0
+            if servico.aliquota_csll and servico.aliquota_csll > 0:
+                v_ret_csll = base_calculo * (servico.aliquota_csll / 100)
+                SubElement(trib_fed_elem, "vRetCSLL").text = f"{v_ret_csll:.2f}"
         
         # totTrib - Total de Tributos (obrigatório em trib após tribMun e tribFed)
         tot_trib_elem = SubElement(trib_elem, "totTrib")
