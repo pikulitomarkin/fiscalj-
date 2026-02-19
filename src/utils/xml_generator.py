@@ -3,6 +3,7 @@ Gerador de XMLs NFS-e no padrão ADN (Ambiente de Disponibilização Nacional).
 """
 import gzip
 import base64
+from decimal import Decimal
 from xml.etree.ElementTree import Element, SubElement, tostring
 from datetime import datetime
 from typing import Dict, Any, Optional
@@ -322,10 +323,9 @@ class NFSeXMLGenerator:
                 v_ret_irrf = base_calculo * (servico.aliquota_ir / 100)
                 SubElement(trib_fed_elem, "vRetIRRF").text = f"{v_ret_irrf:.2f}"
             
-            # vRetCSLL - CSLL Retido
-            if servico.aliquota_csll and servico.aliquota_csll > 0:
-                v_ret_csll = base_calculo * (servico.aliquota_csll / 100)
-                SubElement(trib_fed_elem, "vRetCSLL").text = f"{v_ret_csll:.2f}"
+            # vRetCSLL - CSLL Retido (obrigatório quando tpRetPisCofins != "0", erro E0724)
+            v_ret_csll = base_calculo * (servico.aliquota_csll / 100) if servico.aliquota_csll and servico.aliquota_csll > 0 else Decimal("0")
+            SubElement(trib_fed_elem, "vRetCSLL").text = f"{v_ret_csll:.2f}"
         
         # totTrib - Total de Tributos (obrigatório em trib após tribMun e tribFed)
         tot_trib_elem = SubElement(trib_elem, "totTrib")
